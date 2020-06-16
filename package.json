@@ -1,0 +1,26 @@
+{
+  "name": "apppalmarest",
+  "version": "1.0.0",
+  "description": "backend de AppPalma",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MyDiaz/apppalmarest.git"
+  },
+  "keywords": [
+    "palma-rest"
+  ],
+  "author": "Mayra Riascos Diaz",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MyDiaz/apppalmarest/issues"
+  },
+  "homepage": "https://github.com/MyDiaz/apppalmarest#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "pg": "^8.2.1"
+  }
+}
