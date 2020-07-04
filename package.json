@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/MyDiaz/apppalmarest#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
+    "express-sanitize-escape": "^1.1.0",
     "pg": "^8.2.1"
   }
 }
