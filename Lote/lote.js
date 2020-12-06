@@ -1,7 +1,7 @@
 const express = require("express");
 const config = require('../config');
 const { Pool } = require('pg');
-const app = express.Router();
+const rutas = express.Router();
 
 const BaseDatos = new Pool(config.connectionData);
 
@@ -46,7 +46,7 @@ var put_lote = async(req) => {
     return rta;
 }
 
-app.route('/lote').get((req, res) => {
+rutas.route('/lote').get((req, res) => {
         get_lotes().then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el listado de lotes' });
@@ -88,7 +88,7 @@ app.route('/lote').get((req, res) => {
         }
     });
 
-app.route('/lote/:nombre')
+rutas.route('/lote/:nombre')
     .get((req, res) => {
         get_lote(req).then(rta => {
             if (!rta) {
@@ -123,12 +123,8 @@ app.route('/lote/:nombre')
                 default:
                     text = "Error inesperado de base de datos";
             }
-            res.status(400).send({
-                message: `${text}. No se pudo actualizar el lote`
-            });
+            res.status(400).send({ message: `${text}. No se pudo actualizar el lote` });
         });
     });
 
-module.exports = {
-    app
-}
+module.exports = rutas
