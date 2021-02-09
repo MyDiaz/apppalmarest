@@ -256,10 +256,7 @@ rutas.route('/plaga/:nombre_comun_plaga')
         })
     })
     .put((req, res) => {
-
-        actualizar_plaga(req, res).then(rta => {
-
-        })
+        actualizar_plaga(req, res).then(rta => {})
     })
 
 module.exports = rutas;
