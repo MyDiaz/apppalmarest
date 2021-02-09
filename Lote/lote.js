@@ -17,9 +17,12 @@ var get_lotes = async() => {
 //permite la creación de un lote
 var post_lote = async(req) => {
     let consulta = `INSERT INTO public."LOTE"("año_siembra", hectareas, nombre_lote, 
-    numero_palmas, material_siembra) VALUES (${req.body["año_siembra"]}, 
-    ${req.body.hectareas}, '${req.body.nombre_lote}', ${req.body.numero_palmas},
-    '${req.body.material_siembra}');`;
+    numero_palmas, material_siembra) VALUES 
+    (${req.body["año_siembra"]}, 
+    ${req.body.hectareas}, 
+    '${decodeURIComponent(req.body.nombre_lote)}', 
+    ${req.body.numero_palmas},
+    '${decodeURIComponent(req.body.material_siembra)}');`;
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();
@@ -37,8 +40,12 @@ var get_lote = async(req) => {
 
 //Actualiza los datos de un lote en especifico
 var put_lote = async(req) => {
-    let consulta = `UPDATE "LOTE" SET año_siembra='${req.body["año_siembra"]}', hectareas='${req.body.hectareas}', 
-    nombre_lote = '${req.body.nombre_lote}', numero_palmas=${req.body.numero_palmas}, material_siembra='${req.body.material_siembra}'  
+    let consulta = `UPDATE "LOTE" SET 
+    año_siembra='${req.body["año_siembra"]}', 
+    hectareas='${req.body.hectareas}', 
+    nombre_lote = '${decodeURIComponent(req.body.nombre_lote)}', 
+    numero_palmas=${req.body.numero_palmas}, 
+    material_siembra='${decodeURIComponent(req.body.material_siembra)}'  
     WHERE nombre_lote = '${req.params.nombre}';`;
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
@@ -46,7 +53,8 @@ var put_lote = async(req) => {
     return rta;
 }
 
-rutas.route('/lote').get((req, res) => {
+rutas.route('/lote')
+    .get((req, res) => {
         get_lotes().then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el listado de lotes' });
@@ -54,7 +62,10 @@ rutas.route('/lote').get((req, res) => {
                 res.status(200).send(rta.rows);
             }
         }).catch(
-            err => { res.status(400).send({ message: 'Algo inesperado ocurrió' }); }
+            err => {
+                res.status(400).send({ message: `Algo inesperado ocurrió` });
+                console.log(err);
+            }
         )
     })
     .post((req, res) => {
@@ -66,6 +77,7 @@ rutas.route('/lote').get((req, res) => {
             post_lote(req).then(rta => {
                 res.status(200).send({ message: "El lote se insertó correctamente" });
             }).catch(err => {
+                console.log(err);
                 var text;
                 switch (err.constraint) {
                     case "hectareas_check":
@@ -97,7 +109,10 @@ rutas.route('/lote/:nombre')
                 res.status(200).send(rta.rows);
             }
         }).catch(
-            err => { res.status(400).send({ message: 'Algo inesperado ocurrió' }); }
+            err => {
+                res.status(400).send({ message: 'Algo inesperado ocurrió' });
+                console.log(err);
+            }
         )
     })
     .put((req, res) => {
