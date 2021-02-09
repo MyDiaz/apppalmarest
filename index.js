@@ -17,7 +17,9 @@ const registro = require("./autenticacion/registro");
 const login = require("./autenticacion/login");
 const usuario = require("./usuario/usuario");
 const enfermedades = require("./Enfermedades/enfermedades");
+const enfermedadesEtapas = require("./Enfermedades/enfermedadesEtapas");
 const plagas = require("./Plagas/plagas");
+const agroquimicos = require("./Agroquimicos/agroquimicos")
 
 //permite que a todos las peticiones se pueda acceder a la propiedad body
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -25,7 +27,7 @@ app.use(bodyParser.json());
 //app.use(express.json());
 app.use(expressSanitized.middleware());
 //protección de las rutas que reciben parametros por la URL
-expressSanitized.sanitizeParams(app._router, ['nombre', 'nombre_enfermedad', 'nombre_comun_plaga']);
+expressSanitized.sanitizeParams(app._router, ['nombre', 'nombre_enfermedad', 'nombre_comun_plaga', 'id_producto_agroquimico']);
 
 //carga de rutas
 app.use(lote);
@@ -33,7 +35,9 @@ app.use(registro);
 app.use(login);
 app.use(usuario);
 app.use(enfermedades);
+app.use(enfermedadesEtapas);
 app.use(plagas);
+app.use(agroquimicos);
 
 app.use(function(req, res, next) {
     res.status(404).send({
