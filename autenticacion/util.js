@@ -19,7 +19,7 @@ const options = {
 };
 
 passport.use(new JwtStrategy(options, function(jwt_payload, done) {
-    return done(null, { cc_usuario: jwt_payload.sub, rol_usuario: jwt_payload.rol });
+    return done(null, jwt_payload);
 }));
 
 const get_usuario = async(cc_usuario) => {
@@ -63,8 +63,11 @@ const authorize = (roles) => {
             if (!token_user) {
                 res.status(401).send({ success: false, message: "La sesión no es válida o ha expirado" })
             } else {
-                get_usuario(token_user.cc_usuario).then(db_user => {
+                console.log("token_user", token_user);
+                get_usuario(token_user.sub.cc_usuario).then(db_user => {
+                    console.log("db_user", db_user);
                     if (!db_user) {
+
                         res.status(401).send({ success: false, message: "No existe el usuario en nuestra base de datos" });
                     } else {
                         if (roles.length && !roles.includes(db_user.rol)) {
