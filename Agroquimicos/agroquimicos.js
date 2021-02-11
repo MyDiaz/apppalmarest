@@ -1,6 +1,7 @@
 const express = require("express");
 const config = require('../config');
 const { Pool } = require('pg');
+const { authorize } = require("../autenticacion/util");
 const rutas = express.Router();
 
 const BaseDatos = new Pool(config.connectionData);
@@ -73,7 +74,7 @@ var eliminarAgroquimico = async(id_producto_agroquimico) => {
 }
 
 rutas.route('/agroquimico')
-    .post((req, res) => {
+    .post(authorize(["admin"]), (req, res) => {
         if (!req.body.nombre_producto_agroquimico || !req.body.tipo_producto_agroquimico ||
             !req.body.clase_producto || !req.body.presentacion_producto_agroquimico ||
             !req.body.ingrediente_activo_producto_agroquimico || !req.body.periodo_carencia_producto_agroquimico) {
@@ -92,7 +93,7 @@ rutas.route('/agroquimico')
             })
         }
     })
-    .get((req, res) => {
+    .get(authorize(["admin", "user"]), (req, res) => {
         getAgroquimicos().then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el listado de agroquimicos.' });
@@ -108,7 +109,7 @@ rutas.route('/agroquimico')
     })
 
 rutas.route('/agroquimico/:id_producto_agroquimico')
-    .get((req, res) => {
+    .get(authorize(["admin"]), (req, res) => {
         getAgroquimico(req.params.id_producto_agroquimico).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el agroquímico.' });
@@ -121,7 +122,7 @@ rutas.route('/agroquimico/:id_producto_agroquimico')
             res.status(500).send({ message: 'Algo inesperado ocurrió obteniendo el agroquimico.' })
         })
     })
-    .put((req, res) => {
+    .put(authorize(["admin"]), (req, res) => {
         if (!req.body.nombre_producto_agroquimico || !req.body.tipo_producto_agroquimico ||
             !req.body.clase_producto || !req.body.presentacion_producto_agroquimico ||
             !req.body.ingrediente_activo_producto_agroquimico || !req.body.periodo_carencia_producto_agroquimico) {
@@ -131,7 +132,7 @@ rutas.route('/agroquimico/:id_producto_agroquimico')
                 if (!rta) {
                     res.status(400).send({ message: `No se pudo editar el agroquímico ${req.body.nombre_producto_agroquimico}.` });
                 } else {
-                    res.status(200).send(rta);
+                    res.status(200).send({ message: `Se editó correctamente el agroquímico ${req.body.nombre_producto_agroquimico}.` });
                 }
             }).catch(err => {
                 console.log('Algo inesperado ocurrió editando el agroquimico', err);
@@ -139,13 +140,12 @@ rutas.route('/agroquimico/:id_producto_agroquimico')
             })
         }
     })
-    .delete((req, res) => {
+    .delete(authorize(["admin"]), (req, res) => {
         eliminarAgroquimico(req.params.id_producto_agroquimico).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: `No se pudo eliminar el agroquímico.` });
             } else {
-                res.status(200).send(rta);
-                console.log(rta);
+                res.status(200).send({ message: `Se eliminó correctamente el agroquímico ${req.body.nombre_producto_agroquimico}.` });
             }
         }).catch(err => {
             console.log('Algo inesperado ocurrió eliminando el agroquimico', err);
