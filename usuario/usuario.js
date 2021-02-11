@@ -2,6 +2,7 @@ const express = require("express");
 const config = require('../config');
 const get_usuario = require('../autenticacion/util').get_usuario;
 const encriptar_clave = require('../autenticacion/util').encriptar_clave;
+const { authorize } = require("../autenticacion/util");
 const bcrypt = require("bcryptjs");
 const { Pool } = require('pg');
 const rutas = express.Router();
@@ -24,7 +25,7 @@ var actualizarUsuario = async(req) => {
 }
 
 rutas.route('/usuario/:cc_usuario')
-    .get((req, res) => {
+    .get(authorize(["user", "admin"]), (req, res) => {
         get_usuario(req.params.cc_usuario).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: "No se pudo obtener la información de este usuario" });
@@ -37,7 +38,7 @@ rutas.route('/usuario/:cc_usuario')
             }
         )
     })
-    .put((req, res) => {
+    .put(authorize(["user"]), (req, res) => {
         get_usuario(req.params.cc_usuario).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: "No se pudo obtener la información de este usuario." });

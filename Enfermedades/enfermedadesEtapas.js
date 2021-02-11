@@ -2,6 +2,7 @@ const express = require("express");
 const config = require('../config');
 const { Pool } = require('pg');
 const rutas = express.Router();
+const { authorize } = require("../autenticacion/util");
 
 const BaseDatos = new Pool(config.connectionData);
 
@@ -207,7 +208,7 @@ var actualizar_nombre_enfermedad = async(nombre_enfermedad_nuevo, nombre_enferme
 }
 
 rutas.route('/enfermedad-etapas')
-    .get((req, res) => {
+    .get(authorize(["admin", "user"]), (req, res) => {
         get_enfermedades_con_etapas().then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el listado de enfermedades' });
@@ -218,7 +219,7 @@ rutas.route('/enfermedad-etapas')
             err => { res.status(400).send({ message: 'Algo inesperado ocurrió' }); }
         )
     })
-    .post((req, res) => {
+    .post(authorize(["admin"]), (req, res) => {
         function estaVacio(elemento) {
             return elemento === '';
         }
@@ -248,7 +249,7 @@ rutas.route('/enfermedad-etapas')
     })
 
 rutas.route('/enfermedad-etapas/:nombre_enfermedad')
-    .get((req, res) => {
+    .get(authorize(["admin"]), (req, res) => {
         get_enfermedad_con_etapas(decodeURIComponent(req.params.nombre_enfermedad)).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el listado de enfermedades' });
@@ -261,7 +262,7 @@ rutas.route('/enfermedad-etapas/:nombre_enfermedad')
                 console.log(err);
             }
         )
-    }).delete((req, res) => {
+    }).delete(authorize(["admin"]), (req, res) => {
         eliminar_enfermedad_con_etapas(decodeURIComponent(req.params["nombre_enfermedad"])).then(rta => {
             console.log("req.params", req.params);
             if (!rta) {
@@ -275,7 +276,7 @@ rutas.route('/enfermedad-etapas/:nombre_enfermedad')
             res.status(500).send({ message: 'Algo inesperado ocurrió.' })
         })
     })
-    .put((req, res) => {
+    .put(authorize(["admin"]), (req, res) => {
         actualizar_enfermedad_con_etapas(req, res).then(rta => {})
     })
 

@@ -2,6 +2,7 @@ const express = require("express");
 const config = require('../config');
 const { Pool } = require('pg');
 const rutas = express.Router();
+const { authorize } = require("../autenticacion/util");
 
 const BaseDatos = new Pool(config.connectionData);
 
@@ -54,7 +55,7 @@ var put_lote = async(req) => {
 }
 
 rutas.route('/lote')
-    .get((req, res) => {
+    .get(authorize(["admin", "user"]), (req, res) => {
         get_lotes().then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el listado de lotes' });
@@ -68,7 +69,7 @@ rutas.route('/lote')
             }
         )
     })
-    .post((req, res) => {
+    .post(authorize(["admin"]), (req, res) => {
         //pregunta si todos los campos requeridos están presentes 
         if (!req.body.nombre_lote || !req.body["año_siembra"] || !req.body.hectareas ||
             !req.body.numero_palmas || !req.body.material_siembra) {
@@ -101,7 +102,7 @@ rutas.route('/lote')
     });
 
 rutas.route('/lote/:nombre')
-    .get((req, res) => {
+    .get(authorize(["admin"]), (req, res) => {
         get_lote(req).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: "No se pudo obtener la información de este lote" });
@@ -115,7 +116,7 @@ rutas.route('/lote/:nombre')
             }
         )
     })
-    .put((req, res) => {
+    .put(authorize(["admin"]), (req, res) => {
         put_lote(req).then(rta => {
             res.status(200).send({
                 respuesta: rta.rows,

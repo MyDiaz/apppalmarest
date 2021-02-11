@@ -2,6 +2,7 @@ const express = require("express");
 const config = require('../config');
 const { Pool } = require('pg');
 const rutas = express.Router();
+const { authorize } = require("../autenticacion/util");
 
 const BaseDatos = new Pool(config.connectionData);
 
@@ -63,7 +64,7 @@ var eliminar_enfermedad = async(nombre_enfermedad) => {
 
 //Retorna el listado de todas las enfermedades que no tienen etapas
 rutas.route('/enfermedades')
-    .get((req, res) => {
+    .get(authorize(["admin", "user"]), (req, res) => {
         get_enfermedades().then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el listado de enfermedades' });
@@ -77,7 +78,7 @@ rutas.route('/enfermedades')
             }
         )
     })
-    .post((req, res) => {
+    .post(authorize(["admin"]), (req, res) => {
         console.log("req.body.nombre_enfermedad", req.body.nombre_enfermedad);
         console.log("req.body.procedimiento_tratamiento_enfermedad", req.body.procedimiento_tratamiento_enfermedad);
         if (!req.body.nombre_enfermedad || !req.body.procedimiento_tratamiento_enfermedad) {
@@ -98,7 +99,7 @@ rutas.route('/enfermedades')
 
 
 rutas.route('/enfermedad/:nombre_enfermedad')
-    .get((req, res) => {
+    .get(authorize(["admin"]), (req, res) => {
         get_enfermedad(decodeURIComponent(req.params.nombre_enfermedad)).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener la enfermedad.' });
@@ -111,7 +112,7 @@ rutas.route('/enfermedad/:nombre_enfermedad')
             res.status(500).send({ message: 'Algo inesperado ocurrió.' })
         })
     })
-    .put((req, res) => {
+    .put(authorize(["admin"]), (req, res) => {
         put_enfermedad(req).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo editar la enfermedad.' });
@@ -123,7 +124,7 @@ rutas.route('/enfermedad/:nombre_enfermedad')
             res.status(500).send({ message: 'Algo inesperado ocurrió.' })
         })
     })
-    .delete((req, res) => {
+    .delete(authorize(["admin"]), (req, res) => {
         eliminar_enfermedad(decodeURIComponent(req.params["nombre_enfermedad"])).then(rta => {
             console.log("req.params", req.params);
             if (!rta) {

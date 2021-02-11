@@ -2,6 +2,7 @@ const express = require("express");
 const config = require('../config');
 const { Pool } = require('pg');
 const rutas = express.Router();
+const { authorize } = require("../autenticacion/util");
 
 const BaseDatos = new Pool(config.connectionData);
 
@@ -182,7 +183,7 @@ var actualizar_plaga = async(req, res) => {
 }
 
 rutas.route('/plagas')
-    .get((req, res) => {
+    .get(authorize(["admin", "user"]), (req, res) => {
         get_plagas().then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener el listado de plagas' });
@@ -193,7 +194,7 @@ rutas.route('/plagas')
             err => { res.status(400).send({ message: 'Algo inesperado ocurrió' }); }
         )
     })
-    .post((req, res) => {
+    .post(authorize(["admin"]), (req, res) => {
         console.log("body", req.body);
 
         function estaVacio(elemento) {
@@ -227,7 +228,7 @@ rutas.route('/plagas')
     })
 
 rutas.route('/plaga/:nombre_comun_plaga')
-    .get((req, res) => {
+    .get(authorize(["admin"]), (req, res) => {
         get_plaga(decodeURIComponent(req.params.nombre_comun_plaga)).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo obtener la plaga.' });
@@ -241,7 +242,7 @@ rutas.route('/plaga/:nombre_comun_plaga')
             res.status(500).send({ message: 'Algo inesperado ocurrió.' })
         })
     })
-    .delete((req, res) => {
+    .delete(authorize(["admin"]), (req, res) => {
         eliminar_plaga(decodeURIComponent(req.params["nombre_comun_plaga"])).then(rta => {
             console.log("req.params", req.params);
             if (!rta) {
@@ -255,7 +256,7 @@ rutas.route('/plaga/:nombre_comun_plaga')
             res.status(500).send({ message: 'Algo inesperado ocurrió.' })
         })
     })
-    .put((req, res) => {
+    .put(authorize(["admin"]), (req, res) => {
         actualizar_plaga(req, res).then(rta => {})
     })
 
