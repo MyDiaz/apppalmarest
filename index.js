@@ -19,7 +19,10 @@ const usuario = require("./usuario/usuario");
 const enfermedades = require("./Enfermedades/enfermedades");
 const enfermedadesEtapas = require("./Enfermedades/enfermedadesEtapas");
 const plagas = require("./Plagas/plagas");
-const agroquimicos = require("./Agroquimicos/agroquimicos")
+const agroquimicos = require("./Agroquimicos/agroquimicos");
+const cosechas = require("./Cosechas/cosechas");
+const podas = require("./Podas/podas");
+const plateos = require("./Plateos/plateos");
 
 //permite que a todos las peticiones se pueda acceder a la propiedad body
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -34,10 +37,13 @@ app.use(lote);
 app.use(registro);
 app.use(login);
 app.use(usuario);
-app.use(enfermedades);
+app.use(enfermedades.rutas);
 app.use(enfermedadesEtapas);
 app.use(plagas);
 app.use(agroquimicos);
+app.use(cosechas);
+app.use(podas);
+app.use(plateos);
 
 app.use(function(req, res, next) {
     res.status(404).send({
