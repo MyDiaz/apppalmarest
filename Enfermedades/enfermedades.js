@@ -79,8 +79,8 @@ rutas.route('/enfermedades')
         )
     })
     .post(authorize(["admin"]), (req, res) => {
-        console.log("req.body.nombre_enfermedad", req.body.nombre_enfermedad);
-        console.log("req.body.procedimiento_tratamiento_enfermedad", req.body.procedimiento_tratamiento_enfermedad);
+        //console.log("req.body.nombre_enfermedad", req.body.nombre_enfermedad);
+        //console.log("req.body.procedimiento_tratamiento_enfermedad", req.body.procedimiento_tratamiento_enfermedad);
         if (!req.body.nombre_enfermedad || !req.body.procedimiento_tratamiento_enfermedad) {
             res.status(400).send({ message: 'Ingrese todos los campos' });
         } else {
@@ -105,7 +105,7 @@ rutas.route('/enfermedad/:nombre_enfermedad')
                 res.status(400).send({ message: 'No se pudo obtener la enfermedad.' });
             } else {
                 res.status(200).send(rta[0]);
-                console.log(rta[0]);
+                //console.log(rta[0]);
             }
         }).catch(err => {
             console.log(err);
@@ -126,7 +126,7 @@ rutas.route('/enfermedad/:nombre_enfermedad')
     })
     .delete(authorize(["admin"]), (req, res) => {
         eliminar_enfermedad(decodeURIComponent(req.params["nombre_enfermedad"])).then(rta => {
-            console.log("req.params", req.params);
+            //console.log("req.params", req.params);
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo eliminar la enfermedad.' });
             } else {
@@ -134,9 +134,12 @@ rutas.route('/enfermedad/:nombre_enfermedad')
             }
         }).catch(err => {
             console.log(err);
-            console.log("req.params", req.params);
+            //console.log("req.params", req.params);
             res.status(500).send({ message: 'Algo inesperado ocurrió.' })
         })
     })
 
-module.exports = rutas;
+module.exports = {
+    rutas,
+    get_enfermedad
+};

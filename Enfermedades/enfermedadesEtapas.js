@@ -3,6 +3,7 @@ const config = require('../config');
 const { Pool } = require('pg');
 const rutas = express.Router();
 const { authorize } = require("../autenticacion/util");
+const { get_enfermedad } = require('../Enfermedades/enfermedades')
 
 const BaseDatos = new Pool(config.connectionData);
 
@@ -13,10 +14,10 @@ var get_enfermedades_con_etapas = async() => {
     "ENFERMEDAD" on 
 	"ETAPAS_ENFERMEDAD".nombre_enfermedad = "ENFERMEDAD".nombre_enfermedad 
 	where "ENFERMEDAD".fue_borrado = false and "ETAPAS_ENFERMEDAD".fue_borrado = false;`
-    console.log(consulta);
+        //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
-    console.log("get_enfermedad_con_etapas", rta);
+    //console.log("get_enfermedad_con_etapas", rta);
     cliente_bd.release();
     return rta;
 }
@@ -52,7 +53,6 @@ var post__enfermedad_con_etapas = async(req) => {
         cliente_bd.release();
         return resp;
     } else {
-        console.log("ya esta la enfermedad");
         for (let i = 0; i < numero_etapas; i = i + 1) {
             values = values +
                 `('${decodeURIComponent(req.body.etapas_enfermedad[i])}','${nombre_enfermedad_decode}', 
@@ -147,7 +147,7 @@ var actualizar_enfermedad_con_etapas = async(req) => {
 var eliminar_enfermedad_con_etapas = async(req) => {
     let consulta = `UPDATE public."ENFERMEDADES"
 	SET fue_borrado=true WHERE nombre_comun_plaga = '${nombre_comun_plaga}';`;
-    console.log(consulta);
+    //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();
@@ -158,7 +158,7 @@ var get_enfermedad_con_etapas = async(nombre_enfermedad) => {
     //id_etapa_enfermedad = id_etapa_enfermedad.toString()
     let consulta = `SELECT * FROM "ETAPAS_ENFERMEDAD" where nombre_enfermedad = '${nombre_enfermedad}'
     and fue_borrado = false;`;
-    console.log(consulta);
+    //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();
@@ -170,6 +170,7 @@ var post_etapa_enfermedad = async(etapa_enfermedad, nombre_enfermedad, tratamien
         etapa_enfermedad, nombre_enfermedad, tratamiento_etapa_enfermedad)
         VALUES ('${decodeURIComponent(etapa_enfermedad)}', 
         '${decodeURIComponent(nombre_enfermedad)}', '${decodeURIComponent(tratamiento_etapa_enfermedad)}');`;
+    //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();
@@ -189,7 +190,7 @@ var actualizar_etapa_enfermedad = async(id_etapa_enfermedad, etapa_enfermedad, t
 var eliminar_etapa_enfermedad = async(nombre_enfermedad) => {
     let consulta = `update public."ENFERMEDAD" set fue_borrado = true
     where nombre_enfermedad = '${nombre_enfermedad}';`
-    console.log(consulta);
+        //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();
@@ -200,7 +201,7 @@ var actualizar_nombre_enfermedad = async(nombre_enfermedad_nuevo, nombre_enferme
     let consulta = `UPDATE public."ENFERMEDAD"
 	SET nombre_enfermedad='${decodeURIComponent(nombre_enfermedad_nuevo)}'
     WHERE nombre_comun_plaga='${nombre_enfermedad_viejo}';`
-    console.log(consulta);
+        //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();
@@ -235,7 +236,7 @@ rutas.route('/enfermedad-etapas')
             res.status(400).send({ message: 'Ingrese todos los campos' });
         } else {
             post__enfermedad_con_etapas(req).then(rta => {
-                console.log("rta en post", rta);
+                //console.log("rta en post", rta);
                 if (!rta) {
                     res.status(400).send({ message: 'No se pudo insertar la enfermedad' });
                 } else {
@@ -264,7 +265,7 @@ rutas.route('/enfermedad-etapas/:nombre_enfermedad')
         )
     }).delete(authorize(["admin"]), (req, res) => {
         eliminar_enfermedad_con_etapas(decodeURIComponent(req.params["nombre_enfermedad"])).then(rta => {
-            console.log("req.params", req.params);
+            //console.log("req.params", req.params);
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo eliminar la enfermedad.' });
             } else {
@@ -272,7 +273,7 @@ rutas.route('/enfermedad-etapas/:nombre_enfermedad')
             }
         }).catch(err => {
             console.log(err);
-            console.log("req.params", req.params);
+            //console.log("req.params", req.params);
             res.status(500).send({ message: 'Algo inesperado ocurrió.' })
         })
     })
