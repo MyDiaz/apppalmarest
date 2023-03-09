@@ -23,7 +23,10 @@ const agroquimicos = require("./Agroquimicos/agroquimicos");
 const cosechas = require("./Cosechas/cosechas");
 const podas = require("./Podas/podas");
 const plateos = require("./Plateos/plateos");
-
+const movilEnfermedades = require("./Movil/Enfermedades/enfermedades")
+const movilAgroquimicos = require("./Movil/Agroquimicos/agroquimicos")
+const movilPlagas = require("./Movil/Plagas/plagas")
+const movilPalmas = require("./Movil/Palmas/palmas")
 //permite que a todos las peticiones se pueda acceder a la propiedad body
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -44,6 +47,10 @@ app.use(agroquimicos);
 app.use(cosechas);
 app.use(podas);
 app.use(plateos);
+app.use(movilEnfermedades);
+app.use(movilPlagas);
+app.use(movilAgroquimicos);
+app.use(movilPalmas);
 
 app.use(function(req, res, next) {
     res.status(404).send({
