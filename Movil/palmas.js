@@ -1,8 +1,8 @@
 const express = require("express");
-const config = require('../../config');
+const config = require('../config');
 const { Pool } = require('pg');
 const rutas = express.Router();
-const { authorize } = require("../../autenticacion/util");
+const { authorize } = require("../autenticacion/util");
 const format = require('pg-format');
 const BaseDatos = new Pool(config.connectionData);
 

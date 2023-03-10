@@ -1,9 +1,11 @@
 const express = require("express");
-const config = require('../../config');
+const config = require('../config');
 const { Pool } = require('pg');
 const rutas = express.Router();
-const { authorize } = require("../../autenticacion/util");
+const { authorize } = require("../autenticacion/util");
 const format = require('pg-format');
+const decode = require('unescape');
+const { StringDecoder } = require('node:string_decoder');
 
 const BaseDatos = new Pool(config.connectionData);
 
@@ -27,7 +29,11 @@ var post_enfermedades = async (req) => {
             { timeStyle: 'short', hour12: false, timeZone: 'UTC' });
         // const fechaTime = Date(fecha_registro_enfermedad);
         const fechaTime = new Date(fecha_registro_enfermedad);
-        values.push([horaTime, observacion_registro_enfermedad, fechaTime, id_palma, nombre_enfermedad, id_etapa_enfermedad, responsable]);
+        const decoder = new StringDecoder('utf8');
+        
+        const cent = Buffer.from(nombre_enfermedad);
+
+        values.push([horaTime, observacion_registro_enfermedad, fechaTime, id_palma, decoder.write(cent), id_etapa_enfermedad, responsable]);
     }
     let sql = format(`INSERT INTO public."REGISTRO_ENFERMEDAD"(hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, responsable) VALUES %L`, values);
     console.log(sql);
@@ -52,7 +58,6 @@ rutas.route('/movil/enfermedades')
             }
         )
     }).post(authorize(["admin"]), (req, res) => {
-        console.log("perrohpta");
         post_enfermedades(req).then(rta => {
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo insertar los registros de enfermedad' });
