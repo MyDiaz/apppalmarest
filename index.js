@@ -23,6 +23,8 @@ const agroquimicos = require("./Agroquimicos/agroquimicos");
 const cosechas = require("./Cosechas/cosechas");
 const podas = require("./Podas/podas");
 const plateos = require("./Plateos/plateos");
+const viajes = require("./Viajes/viajes");
+const censos = require("./Censo/censo");
 
 //permite que a todos las peticiones se pueda acceder a la propiedad body
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -44,6 +46,8 @@ app.use(agroquimicos);
 app.use(cosechas);
 app.use(podas);
 app.use(plateos);
+app.use(viajes);
+app.use(censos)
 
 app.use(function(req, res, next) {
     res.status(404).send({
