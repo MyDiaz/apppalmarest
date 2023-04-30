@@ -9,38 +9,84 @@ const { StringDecoder } = require('node:string_decoder');
 
 
 var post_cosechas = async (req) => {
-    const cliente_bd = await BaseDatos.connect();
     var diarias;
+    const cliente_bd = await BaseDatos.connect();
+    let cosechasIds = [];
     for (i in req.body.data) {
-        var auxcosecha =  req.body.data[i]["cosecha"];
-        var diarias =  req.body.data[i]["diarias"];
+        var auxcosecha = req.body.data[i]["cosecha"];
+        var diarias = req.body.data[i]["diarias"];
 
         const decoder = new StringDecoder('utf8');
-        
         var cosechavalues = [];
-        const { id_cosecha, nombre_lote, fecha_ingreso, fecha_salida, cantidad_racimos, kilos, id_viaje, estado_cosecha } = auxcosecha;
-
+        const { idCosecha, nombre_lote, idViaje, estadoCosecha } = auxcosecha;
+        console.log(idCosecha);
         const cent = Buffer.from(nombre_lote);
-        cosechavalues.push([id_cosecha,decoder.write(cent) , fecha_ingreso, fecha_salida, cantidad_racimos, kilos, id_viaje, estado_cosecha]);
-        
-        let sqlCosecha = format(`INSERT INTO public."COSECHA"(id_cosecha, nombre_lote, fecha_ingreso, fecha_salida, cantidad_racimos, kilos, id_viaje, estado_cosecha) VALUES %L ON CONFLICT (id_cosecha) DO UPDATE 
-        SET cantidad_racimos = excluded.cantidad_racimos, 
-        kilos = excluded.kilos;`, cosechavalues);
+        cosechavalues.push(decoder.write(cent), idViaje, estadoCosecha);
 
-        var cosechadiariavalues = [];
-        for(j in diarias){
-            var auxcosechadiaria = diarias[j];
-            const { id_cosecha,id_cosecha_diaria,fecha_cosecha,kilos_racimos_dia,cantidad_racimos_dia,responsable} = auxcosechadiaria;
-                cosechadiariavalues.push([id_cosecha,id_cosecha_diaria,fecha_cosecha,kilos_racimos_dia,cantidad_racimos_dia,responsable]);
+        // Obtenemos la cosecha de la base de datos central si existe
+        //Si no existe la crea
+        if (!idCosecha) {
+            try {
+                await cliente_bd.query('BEGIN');
+                const cosechaQuery = format(`INSERT INTO public."COSECHA"(nombre_lote, id_viaje, estado_cosecha) VALUES (%L) RETURNING id_cosecha;`, cosechavalues);
+
+                // Se agrega la cosecha
+                const cosechaResult = await cliente_bd.query(cosechaQuery);
+                const cosechaId = cosechaResult.rows[0].id_cosecha;
+                cosechasIds.push(cosechaId);
+
+                // Se agregan las cosechas diarias con el id devuelto por la base de datos central, 
+                // diferentes a los de los celulares. Asi evitamos conflictos.
+                var cosechadiariavalues = [];
+                if (diarias.length > 0) {
+                    for (j in diarias) {
+                    console.log(auxcosechadiaria);
+                    var auxcosechadiaria = diarias[j];
+                        const { fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario } = auxcosechadiaria;
+                        cosechadiariavalues.push([cosechaId, fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario]);
+                    }
+                    let sqlCosechaDiaria = format(`INSERT INTO public."COSECHA_DIARIA"(id_cosecha, fecha_cosecha,kilos_racimos_dia,cantidad_racimos_dia,cc_usuario) VALUES %L`, cosechadiariavalues);
+                    await cliente_bd.query(sqlCosechaDiaria);
+                }
+
+                await cliente_bd.query('COMMIT');
+            } catch (e) {
+                console.log(e);
+                await cliente_bd.query('ROLLBACK');
+            }
+        } else {
+            try {
+                cosechasIds.push(-1);
+                await cliente_bd.query('BEGIN');
+
+                let cosechaQuery = `UPDATE public."COSECHA" SET ` + (idViaje !== null ? `id_viaje = '${idViaje}', ` : "") + (estadoCosecha !== null ? `estado_cosecha = '${estadoCosecha}'` : "") + ` WHERE id_cosecha = ${idCosecha}`;
+                if(idViaje || estadoCosecha){
+                    console.log(cosechaQuery);
+                    await cliente_bd.query(cosechaQuery);
+                }
+
+                var cosechadiariavalues = [];
+                if (diarias.length > 0) {
+                    for (j in diarias) {
+                        var auxcosechadiaria = diarias[j];
+                    const { fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario } = auxcosechadiaria;
+                        cosechadiariavalues.push([idCosecha, fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario]);
+                    }
+                    let sqlCosechaDiaria = format(`INSERT INTO public."COSECHA_DIARIA"(id_cosecha, fecha_cosecha,kilos_racimos_dia,cantidad_racimos_dia,cc_usuario) VALUES %L`, cosechadiariavalues);
+                    await cliente_bd.query(sqlCosechaDiaria);
+                }
+                await cliente_bd.query('COMMIT');
+
+            } catch (e) {
+                console.log(e);
+                await cliente_bd.query('ROLLBACK');
+            }
         }
-        
-        let sqlCosechaDiaria = format(`INSERT INTO public."COSECHA_DIARIA"(id_cosecha,id_cosecha_diaria,fecha_cosecha,kilos_racimos_dia,cantidad_racimos_dia,responsable) VALUES %L`, cosechadiariavalues);
 
-        let rtaCosecha = await cliente_bd.query(sqlCosecha);
-        let rtaCosechasDiarias = await cliente_bd.query(sqlCosechaDiaria);
     }
     cliente_bd.release();
-    return true;
+    return { "success": true, "cosechasIds": cosechasIds };
+
 }
 
 
@@ -72,7 +118,7 @@ rutas.route('/movil/cosechas')
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo insertar las palmas' });
             } else {
-                res.status(200).send({ message: 'Se agregé correctamente' });
+                res.status(200).send(rta);
             }
         }).catch(err => {
             console.log(err);
