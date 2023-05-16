@@ -34,6 +34,7 @@ const censos = require("./Censo/censo");
 const movilTratamientos = require("./Movil/tratamientos")
 const movilPlateos = require("./Movil/plateos")
 const movilPodas = require("./Movil/podas")
+const movilViajes = require("./Movil/viajes")
 //permite que a todos las peticiones se pueda acceder a la propiedad body
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -64,6 +65,7 @@ app.use(censos)
 app.use(movilTratamientos);
 app.use(movilPlateos);
 app.use(movilPodas);
+app.use(movilViajes);
 
 app.use(function(req, res, next) {
     res.status(404).send({
