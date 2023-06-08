@@ -26,6 +26,11 @@ const plateos = require("./Plateos/plateos");
 const viajes = require("./Viajes/viajes");
 const censos = require("./Censo/censo");
 const registroEnfermedades = require("./Enfermedades/registroEnfermedades");
+const registroTratamientos = require("./Tratamientos/tratamientos");
+const fumigaciones = require("./Censo/fumigaciones");
+const historiaClinicaPalma = require("./Palma/palma");
+const erradicaciones = require("./Palma/erradicacion");
+const precipitaciones = require("./Precipitaciones/precipitaciones");
 
 //permite que a todos las peticiones se pueda acceder a la propiedad body
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -50,6 +55,11 @@ app.use(plateos);
 app.use(viajes);
 app.use(censos);
 app.use(registroEnfermedades);
+app.use(registroTratamientos);
+app.use(fumigaciones);
+app.use(historiaClinicaPalma);
+app.use(erradicaciones);
+app.use(precipitaciones);
 
 app.use(function(req, res, next) {
     res.status(404).send({
