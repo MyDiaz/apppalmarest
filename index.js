@@ -31,14 +31,11 @@ const movilCosechas = require("./Movil/cosechas")
 const viajes = require("./Viajes/viajes");
 const censos = require("./Censo/censo");
 const registroEnfermedades = require("./Enfermedades/registroEnfermedades");
-<<<<<<< Updated upstream
 const registroTratamientos = require("./Tratamientos/tratamientos");
 const fumigaciones = require("./Censo/fumigaciones");
 const historiaClinicaPalma = require("./Palma/palma");
 const erradicaciones = require("./Palma/erradicacion");
 const precipitaciones = require("./Precipitaciones/precipitaciones");
-=======
->>>>>>> Stashed changes
 
 const movilTratamientos = require("./Movil/tratamientos")
 const movilPlateos = require("./Movil/plateos")
