@@ -28,6 +28,14 @@ var get_palmasTodas = async () => {
     return rta;
 }
 
+var get_palmasLote = async (nombreLote) => {
+    let consulta = `SELECT * FROM "PALMA" WHERE nombre_lote = '${nombreLote}';`;
+    const cliente_bd = await BaseDatos.connect();
+    let rta = await cliente_bd.query(consulta);
+    cliente_bd.release();
+    return rta;
+}
+
 
 rutas.route('/movil/palmas')
     .get((req, res) => {
@@ -57,5 +65,19 @@ rutas.route('/movil/palmas')
         // }
     })
 
+rutas.route('/movil/palmas/:nombre_lote')
+    .get(authorize(["admin"]), (req, res) => {
+        get_palmasLote(req.params.nombre_lote).then(rta => {
+            if (!rta) {
+                res.status(400).send({ message: 'No se pudo obtener el listado de palmas.' });
+            } else {
+                res.status(200).send(rta.rows);
+                console.log(rta);
+            }
+        }).catch(err => {
+            console.log('Algo inesperado ocurrió obteniendo el listado de palmas', err);
+            res.status(500).send({ message: 'Algo inesperado ocurrió obteniendo el listado de palmas.' })
+        })
+    })
 
 module.exports = rutas;

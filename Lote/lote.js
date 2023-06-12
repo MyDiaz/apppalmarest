@@ -5,9 +5,10 @@ const rutas = express.Router();
 const { authorize } = require("../autenticacion/util");
 
 const BaseDatos = new Pool(config.connectionData);
+const fs = require('fs');
 
 //retorna el nombre de todos los lotes registrados en la base de datos
-var get_lotes = async() => {
+var get_lotes = async () => {
     let consulta = 'SELECT nombre_lote FROM "LOTE";';
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
@@ -16,7 +17,7 @@ var get_lotes = async() => {
 }
 
 //permite la creación de un lote
-var post_lote = async(req) => {
+var post_lote = async (req) => {
     let consulta = `INSERT INTO public."LOTE"("año_siembra", hectareas, nombre_lote, 
     numero_palmas, material_siembra) VALUES 
     (${req.body["año_siembra"]}, 
@@ -31,7 +32,7 @@ var post_lote = async(req) => {
 }
 
 //retorna los datos de un lote registrado en la base de datos
-var get_lote = async(req) => {
+var get_lote = async (req) => {
     let consulta = `SELECT * FROM "LOTE" where nombre_lote ='${req.params.nombre}';`;
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
@@ -39,8 +40,29 @@ var get_lote = async(req) => {
     return rta;
 }
 
+var update_mapa_lote = async (req) => {
+
+    // Read the KML file as a Buffer
+    const filePath = 'D:/proyecto/remote/acueducto/acueducto.kml';
+    const fileContents = fs.readFileSync(filePath);
+
+    // Convert Buffer to byte array
+    const byteArray = [...fileContents];
+    // mapa = '${decodeURIComponent(req.body.mapa)}', 
+    console.log("hola");
+    let consulta = `UPDATE "LOTE" SET 
+    hectareas = 7, 
+    mapa = '${byteArray}'
+    WHERE nombre_lote = 'ACUEDUCTO';`;
+    const cliente_bd = await BaseDatos.connect();
+    let rta = await cliente_bd.query(consulta);
+    cliente_bd.release();
+    return rta;
+}
+
 //Actualiza los datos de un lote en especifico
-var put_lote = async(req) => {
+var put_lote = async (req) => {
+
     let consulta = `UPDATE "LOTE" SET 
     año_siembra='${req.body["año_siembra"]}', 
     hectareas='${req.body.hectareas}', 
@@ -123,6 +145,7 @@ rutas.route('/lote/:nombre')
                 message: 'El lote se actualizó correctamente'
             });
         }).catch(err => {
+            console.log(err);
             switch (err.constraint) {
                 case "hectareas_check":
                     text = "Las hectáreas deben ser mayor a cero";
@@ -140,6 +163,19 @@ rutas.route('/lote/:nombre')
                     text = "Error inesperado de base de datos";
             }
             res.status(400).send({ message: `${text}. No se pudo actualizar el lote` });
+        });
+    });
+
+rutas.route('/lote/mapa/:nombre')
+    .put(authorize(["admin"]), (req, res) => {
+        update_mapa_lote(req).then(rta => {
+            res.status(200).send({
+                respuesta: rta.rows,
+                message: 'El lote se actualizó correctamente'
+            });
+        }).catch(err => {
+            console.log(err);
+            res.status(400).send('No se pudo actualizar el lote');
         });
     });
 

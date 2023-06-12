@@ -28,6 +28,20 @@ var get_enfermedad = async(nombre_enfermedad) => {
     return rta.rows;
 }
 
+//query que trae el nombre de la enfermedad y su etapa correspondiente concatenada
+var get_enfermedades_etapa_concat = async(nombre_enfermedad) => {
+    let consulta = `SELECT concat(E.nombre_enfermedad,' ', EE.etapa_enfermedad)
+    FROM "ENFERMEDAD" AS E
+    LEFT JOIN "ETAPAS_ENFERMEDAD" AS EE
+    ON E.nombre_enfermedad = EE.nombre_enfermedad
+    where E.fue_borrado = false;`;
+    //console.log(consulta);
+    const cliente_bd = await BaseDatos.connect();
+    let rta = await cliente_bd.query(consulta);
+    cliente_bd.release();
+    return rta.rows;
+}
+
 var post_enfermedad = async(req) => {
     let consulta = `INSERT INTO public."ENFERMEDAD"( nombre_enfermedad,
     "procedimiento_tratamiento_enfermedad") VALUES 
@@ -137,6 +151,22 @@ rutas.route('/enfermedad/:nombre_enfermedad')
             //console.log("req.params", req.params);
             res.status(500).send({ message: 'Algo inesperado ocurrió.' })
         })
+    })
+
+rutas.route('/enfermedades_etapas_concat')
+    .get(authorize(["admin", "user"]), (req, res) => {
+        get_enfermedades_etapa_concat().then(rta => {
+            if (!rta) {
+                res.status(400).send({ message: 'No se pudo obtener el listado de enfermedades concat' });
+            } else {
+                res.status(200).send(rta);
+            }
+        }).catch(
+            err => {
+                res.status(400).send({ message: 'Algo inesperado ocurrió' });
+                console.log(err);
+            }
+        )
     })
 
 module.exports = {

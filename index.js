@@ -30,6 +30,15 @@ const movilPalmas = require("./Movil/palmas")
 const movilCosechas = require("./Movil/cosechas")
 const viajes = require("./Viajes/viajes");
 const censos = require("./Censo/censo");
+const registroEnfermedades = require("./Enfermedades/registroEnfermedades");
+<<<<<<< Updated upstream
+const registroTratamientos = require("./Tratamientos/tratamientos");
+const fumigaciones = require("./Censo/fumigaciones");
+const historiaClinicaPalma = require("./Palma/palma");
+const erradicaciones = require("./Palma/erradicacion");
+const precipitaciones = require("./Precipitaciones/precipitaciones");
+=======
+>>>>>>> Stashed changes
 
 const movilTratamientos = require("./Movil/tratamientos")
 const movilPlateos = require("./Movil/plateos")
@@ -66,6 +75,13 @@ app.use(movilTratamientos);
 app.use(movilPlateos);
 app.use(movilPodas);
 app.use(movilViajes);
+app.use(censos);
+app.use(registroEnfermedades);
+app.use(registroTratamientos);
+app.use(fumigaciones);
+app.use(historiaClinicaPalma);
+app.use(erradicaciones);
+app.use(precipitaciones);
 
 app.use(function(req, res, next) {
     res.status(404).send({
