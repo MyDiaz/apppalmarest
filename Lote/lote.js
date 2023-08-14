@@ -49,7 +49,6 @@ var update_mapa_lote = async (req) => {
     // Convert Buffer to byte array
     const byteArray = [...fileContents];
     // mapa = '${decodeURIComponent(req.body.mapa)}', 
-    console.log("hola");
     let consulta = `UPDATE "LOTE" SET 
     hectareas = 7, 
     mapa = '${byteArray}'

@@ -5,7 +5,7 @@ config.connectionData = {
     user: 'postgres',
     host: '176.31.22.252',
     database: 'SIGPA',
-    password: 'FtHt%@Q1bXK7',
+    password: '8vg7D/&Lr485',
     port: 65489,
 }
 
