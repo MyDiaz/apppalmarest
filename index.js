@@ -44,8 +44,11 @@ const movilViajes = require("./Movil/viajes")
 const movilFertilizantes = require("./Movil/fertilizantes")
 const movilFertilizaciones = require("./Movil/fertilizaciones")
 //permite que a todos las peticiones se pueda acceder a la propiedad body
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '50mb', extended: true}));
+app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
+app.use(bodyParser.text({ limit: '200mb' }));
 //app.use(express.json());
 app.use(expressSanitized.middleware());
 //protección de las rutas que reciben parametros por la URL
@@ -74,6 +77,7 @@ app.use(censos)
 app.use(movilTratamientos);
 app.use(movilPlateos);
 app.use(movilPodas);
+app.use(movilCosechas);
 app.use(movilViajes);
 app.use(censos);
 app.use(registroEnfermedades);
