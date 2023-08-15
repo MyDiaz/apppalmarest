@@ -93,14 +93,8 @@ var post_enfermedades = async (req) => {
         }
 
     }
-    console.log('ya salio o que wtf');
     cliente_bd.release();
     return { "success": true, "registrosIds": registrosIds };
-    // let sql = format(`INSERT INTO public."REGISTRO_ENFERMEDAD"(hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario) VALUES %L`, values);
-    // let rta = await cliente_bd.query(sql);
-    // cliente_bd.release();
-
-    // return sql;
 }
 
 rutas.route('/movil/enfermedades')
