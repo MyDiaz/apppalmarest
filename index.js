@@ -43,6 +43,7 @@ const movilPodas = require("./Movil/podas")
 const movilViajes = require("./Movil/viajes")
 const movilFertilizantes = require("./Movil/fertilizantes")
 const movilFertilizaciones = require("./Movil/fertilizaciones")
+const movilCensosPlagas = require("./Movil/censosplagas")
 //permite que a todos las peticiones se pueda acceder a la propiedad body
 // app.use(bodyParser.urlencoded({ extended: true }));
 // app.use(bodyParser.json());
@@ -72,6 +73,7 @@ app.use(movilAgroquimicos);
 app.use(movilPalmas);
 app.use(movilFertilizantes);
 app.use(movilFertilizaciones);
+app.use(movilCensosPlagas);
 app.use(viajes);
 app.use(censos)
 app.use(movilTratamientos);
