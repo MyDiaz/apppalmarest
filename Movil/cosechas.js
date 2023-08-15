@@ -78,6 +78,7 @@ var post_cosechas = async (req) => {
             } catch (e) {
                 console.log(e);
                 await cliente_bd.query('ROLLBACK');
+                return { "success": false};
             }
         }
 
