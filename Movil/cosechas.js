@@ -19,7 +19,6 @@ var post_cosechas = async (req) => {
         const decoder = new StringDecoder('utf8');
         var cosechavalues = [];
         const { idCosecha, nombre_lote, idViaje, estadoCosecha } = auxcosecha;
-        console.log(idCosecha);
         const cent = Buffer.from(nombre_lote);
         cosechavalues.push(decoder.write(cent), idViaje, estadoCosecha);
 
@@ -40,8 +39,7 @@ var post_cosechas = async (req) => {
                 var cosechadiariavalues = [];
                 if (diarias.length > 0) {
                     for (j in diarias) {
-                    console.log(auxcosechadiaria);
-                    var auxcosechadiaria = diarias[j];
+                        var auxcosechadiaria = diarias[j];
                         const { fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario } = auxcosechadiaria;
                         cosechadiariavalues.push([cosechaId, fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario]);
                     }
@@ -60,7 +58,7 @@ var post_cosechas = async (req) => {
                 await cliente_bd.query('BEGIN');
 
                 let cosechaQuery = `UPDATE public."COSECHA" SET ` + (idViaje !== null ? `id_viaje = '${idViaje}', ` : "") + (estadoCosecha !== null ? `estado_cosecha = '${estadoCosecha}'` : "") + ` WHERE id_cosecha = ${idCosecha}`;
-                if(idViaje || estadoCosecha){
+                if (idViaje || estadoCosecha) {
                     console.log(cosechaQuery);
                     await cliente_bd.query(cosechaQuery);
                 }
@@ -69,7 +67,7 @@ var post_cosechas = async (req) => {
                 if (diarias.length > 0) {
                     for (j in diarias) {
                         var auxcosechadiaria = diarias[j];
-                    const { fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario } = auxcosechadiaria;
+                        const { fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario } = auxcosechadiaria;
                         cosechadiariavalues.push([idCosecha, fecha_cosecha, kilos_racimos_dia, cantidad_racimos_dia, cc_usuario]);
                     }
                     let sqlCosechaDiaria = format(`INSERT INTO public."COSECHA_DIARIA"(id_cosecha, fecha_cosecha,kilos_racimos_dia,cantidad_racimos_dia,cc_usuario) VALUES %L`, cosechadiariavalues);
