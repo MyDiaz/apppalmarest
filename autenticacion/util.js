@@ -37,7 +37,7 @@ const encriptar_clave = (clave) => {
 
 const generar_token = (cc_usuario, rol) => {
     const payload = { sub: { cc_usuario: cc_usuario, rol: rol } };
-
+    
     return jsonwebtoken.sign(payload,
         config.auth.PRIV_KEY, {
             expiresIn: config.auth.token_duration_minutes * 60, // segundos

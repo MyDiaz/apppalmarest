@@ -8,6 +8,7 @@ const rutas = express.Router();
 rutas.post('/login', function(req, res) {
     auth_util.get_usuario(req.body.cc_usuario).then(user => {
         //console.log("user", user);
+        console.log('=========================');
         if (!user) {
             res.status(401).send({ success: false, message: "Usuario o contraseña incorrectos" });
         } else {

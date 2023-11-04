@@ -23,6 +23,11 @@ const agroquimicos = require("./Agroquimicos/agroquimicos");
 const cosechas = require("./Cosechas/cosechas");
 const podas = require("./Podas/podas");
 const plateos = require("./Plateos/plateos");
+const movilEnfermedades = require("./Movil/enfermedades")
+const movilAgroquimicos = require("./Movil/agroquimicos")
+const movilPlagas = require("./Lote/plagas")
+const movilPalmas = require("./Movil/palmas")
+const movilCosechas = require("./Movil/cosechas")
 const viajes = require("./Viajes/viajes");
 const censos = require("./Censo/censo");
 const registroEnfermedades = require("./Enfermedades/registroEnfermedades");
@@ -32,6 +37,10 @@ const historiaClinicaPalma = require("./Palma/palma");
 const erradicaciones = require("./Palma/erradicacion");
 const precipitaciones = require("./Precipitaciones/precipitaciones");
 
+const movilTratamientos = require("./Movil/tratamientos")
+const movilPlateos = require("./Movil/plateos")
+const movilPodas = require("./Movil/podas")
+const movilViajes = require("./Movil/viajes")
 //permite que a todos las peticiones se pueda acceder a la propiedad body
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -52,7 +61,17 @@ app.use(agroquimicos);
 app.use(cosechas);
 app.use(podas);
 app.use(plateos);
+app.use(movilEnfermedades);
+app.use(movilPlagas);
+app.use(movilAgroquimicos);
+app.use(movilPalmas);
+app.use(movilCosechas);
 app.use(viajes);
+app.use(censos)
+app.use(movilTratamientos);
+app.use(movilPlateos);
+app.use(movilPodas);
+app.use(movilViajes);
 app.use(censos);
 app.use(registroEnfermedades);
 app.use(registroTratamientos);

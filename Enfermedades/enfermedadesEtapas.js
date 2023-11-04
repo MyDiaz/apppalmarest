@@ -17,7 +17,6 @@ var get_enfermedades_con_etapas = async() => {
         //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
-    //console.log("get_enfermedad_con_etapas", rta);
     cliente_bd.release();
     return rta;
 }
