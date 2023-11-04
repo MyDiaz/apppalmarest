@@ -8,17 +8,17 @@ const BaseDatos = new Pool(config.connectionData);
 
 //retorna el registro de un censo registrado en un lote
 var get_censos = async() => {
-    let consulta = `select C.nombre_comun_plaga, EP.nombre_etapa_plaga, C.fecha_censo,C.estado_censo, C.nombre_lote,C.presencia_lote, C.presencia_sector, C.observacion_censo
-    from "ETAPAS_PLAGA" as EP
-    inner join
-    (
-        select CENSO.id_censo,CEP.id_etapa_plaga, CENSO.fecha_censo, CENSO.presencia_lote, CENSO.presencia_sector, 
-        CENSO.observacion_censo, CENSO.nombre_lote, CENSO.estado_censo, CENSO.nombre_comun_plaga
-        from public."CENSO" CENSO
-        inner join "CENSO_ETAPAPLAGA" as CEP
-        on CENSO.id_censo = CEP.id_censo
-    ) as C
-    on EP.id_etapa_plaga = C.id_etapa_plaga`;
+    let consulta = `SELECT C.nombre_comun_plaga, EP.nombre_etapa_plaga, C.fecha_censo, C.estado_censo, C.nombre_lote, C.observacion_censo,
+        C.numero_individuos
+        FROM "ETAPAS_PLAGA" AS EP
+        INNER JOIN
+        (
+        SELECT CENSO.id_censo, CEP.id_etapa_plaga, CENSO.fecha_censo, CENSO.numero_individuos, CENSO.observacion_censo,
+                CENSO.nombre_lote, CENSO.estado_censo, CENSO.nombre_comun_plaga
+        FROM public."CENSO" CENSO
+        INNER JOIN "CENSO_ETAPAPLAGA" AS CEP ON CENSO.id_censo = CEP.id_censo
+        ) AS C ON EP.id_etapa_plaga = C.id_etapa_plaga;
+        `;
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();

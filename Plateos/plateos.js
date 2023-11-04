@@ -8,7 +8,7 @@ const BaseDatos = new Pool(config.connectionData);
 
 //retorna el registro de la cantidad de palmas plateadas de cada registro de plateo
 var get_plateos = async() => {
-    let consulta = `select "PLATEOS".id_plateos, "PLATEOS"."nombre_lote", total_palmas_plateadas, inicio_plateo , fin_plateo, estado_plateo, tipo_plateo 
+    let consulta = `select "PLATEOS".id_plateos, "PLATEOS"."nombre_lote", total_palmas_plateadas, inicio_plateo , fin_plateo, estado_plateo 
     from (select "nombre_lote", sum("cantidad_plateo_diario") as total_palmas_plateadas, "PLATEOS".id_plateos
     from "PLATEOS" inner join  "PLATEO_DIARIO" on "PLATEOS".id_plateos = "PLATEO_DIARIO".id_plateos 
     group by "PLATEOS"."nombre_lote", "PLATEOS".id_plateos) as suma_plateos
