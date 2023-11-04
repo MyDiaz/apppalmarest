@@ -38,17 +38,19 @@ var get_registros_enfermedad_ids = async (req) => {
         results.push(rta.rows[0].id_registro_enfermedad); // 
     }
     cliente_bd.release();
-    return {"results" : results};
+    return { "results": results };
 }
 
 
 var post_enfermedades = async (req) => {
-    var values = [];
     const cliente_bd = await BaseDatos.connect();
+    let registrosIds = [];
     for (i in req.body.data) {
-        let body = req.body.data[i];
+        var values = [];
+        let registro = req.body.data[i]["registro_enfermedad"];
+        let imagenes = req.body.data[i]["imagenes"];
 
-        const { hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario } = body;
+        const { hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario } = registro;
         const horaTime = new Date(hora_registro_enfermedad).toLocaleTimeString('es',
             { timeStyle: 'short', hour12: false, timeZone: 'UTC' });
         const fechaTime = new Date(fecha_registro_enfermedad);
@@ -56,13 +58,43 @@ var post_enfermedades = async (req) => {
 
         const cent = Buffer.from(nombre_enfermedad);
 
-        values.push([horaTime, observacion_registro_enfermedad, fechaTime, id_palma, decoder.write(cent), id_etapa_enfermedad, cc_usuario]);
-    }
-    let sql = format(`INSERT INTO public."REGISTRO_ENFERMEDAD"(hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario) VALUES %L`, values);
-    let rta = await cliente_bd.query(sql);
-    cliente_bd.release();
+        // values.push([horaTime, observacion_registro_enfermedad, fechaTime, id_palma, decoder.write(cent), id_etapa_enfermedad, cc_usuario]);
+        values.push(horaTime, observacion_registro_enfermedad, fechaTime, id_palma, decoder.write(cent), id_etapa_enfermedad, cc_usuario);
+        try {
+            await cliente_bd.query('BEGIN');
+            const registroQuery = format(`INSERT INTO public."REGISTRO_ENFERMEDAD"(hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario) VALUES (%L) RETURNING id_registro_enfermedad;`, values);
 
-    return sql;
+            // Se agrega el registro
+            const registroResult = await cliente_bd.query(registroQuery);
+            const registroId = registroResult.rows[0].id_registro_enfermedad;
+            registrosIds.push(registroId);
+
+            // Se agregan las imagenes con el id devuelto por la base de datos central, 
+            // diferentes a los de los celulares. Asi evitamos conflictos.
+            var imagenesvalues = [];
+            if (imagenes.length > 0) {
+                for (j in imagenes) {
+                    var auximagen = imagenes[j];
+                    const { imagen } = auximagen;
+                    // Convert base64 string to Buffer
+                    const buffer = Buffer.from(imagen, 'base64');
+                    // Convert Buffer to Uint8Array
+                    imagenesvalues.push([registroId, buffer]);
+                }
+                let sqlImagenes = format(`INSERT INTO public."IMAGEN_REGISTRO_ENFERMEDAD"(id_registro_enfermedad, imagen) VALUES %L`, imagenesvalues);
+                await cliente_bd.query(sqlImagenes);
+                // let sqlImagenes = format(`INSERT INTO public."IMAGEN_REGISTRO_ENFERMEDAD"(id_registro_enfermedad, imagen) VALUES %L`, imagenesvalues);
+            }
+            await cliente_bd.query('COMMIT');
+
+        } catch (e) {
+            console.log(e);
+            await cliente_bd.query('ROLLBACK');
+        }
+
+    }
+    cliente_bd.release();
+    return { "success": true, "registrosIds": registrosIds };
 }
 
 rutas.route('/movil/enfermedades')
@@ -84,7 +116,7 @@ rutas.route('/movil/enfermedades')
             if (!rta) {
                 res.status(400).send({ message: 'No se pudo insertar los registros de enfermedad' });
             } else {
-                res.status(200).send({ message: 'Se agreguó correctamente' });
+                res.status(200).send(rta);
             }
         }).catch(err => {
             console.log(err);

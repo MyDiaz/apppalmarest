@@ -15,7 +15,8 @@ var post_palmas = async (req) => {
         const { numero_linea, numero_en_linea, nombre_lote, id_palma, edad_palma, orientacion_palma, estado_palma } = body;
         values.push([numero_linea, numero_en_linea, nombre_lote, id_palma, edad_palma, orientacion_palma, estado_palma]);
     }
-    let sql = format(`INSERT INTO public."PALMA"(numero_linea, numero_en_linea, nombre_lote, id_palma, edad_palma, orientacion_palma, estado_palma) VALUES %L`, values);
+    let sql = format(`INSERT INTO public."PALMA"(numero_linea, numero_en_linea, nombre_lote, id_palma, edad_palma, orientacion_palma, estado_palma) VALUES %L ON CONFLICT (id_palma) DO UPDATE
+    SET estado_palma = EXCLUDED.estado_palma `, values);
     let rta = await cliente_bd.query(sql);
     cliente_bd.release();
     return rta;

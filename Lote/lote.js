@@ -40,19 +40,31 @@ var get_lote = async (req) => {
     return rta;
 }
 
+//retorna el archivo xml del mapa
+var get_lote_mapa = async (req) => {
+    let consulta = `SELECT * FROM "LOTE" where nombre_lote ='${req.params.nombre}';`;
+    const cliente_bd = await BaseDatos.connect();
+    let rta = await cliente_bd.query(consulta);
+    cliente_bd.release();
+    if (rta && rta.rows.length > 0) {
+        return rta.rows[0].mapa; // Return the 'mapa' property of the first object
+    } else {
+        return null; // Return null if no result found
+    }
+}
+
 var update_mapa_lote = async (req) => {
 
     // Read the KML file as a Buffer
     const filePath = 'D:/proyecto/remote/acueducto/acueducto.kml';
-    const fileContents = fs.readFileSync(filePath);
-
+    const fileContents = fs.readFileSync(filePath, 'utf8');
+    console.log('file kml');
+    console.log(fileContents);
     // Convert Buffer to byte array
     const byteArray = [...fileContents];
     // mapa = '${decodeURIComponent(req.body.mapa)}', 
-    console.log("hola");
     let consulta = `UPDATE "LOTE" SET 
-    hectareas = 7, 
-    mapa = '${byteArray}'
+    mapa = '${fileContents}'
     WHERE nombre_lote = 'ACUEDUCTO';`;
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
@@ -167,6 +179,21 @@ rutas.route('/lote/:nombre')
     });
 
 rutas.route('/lote/mapa/:nombre')
+    .get((req, res) => {
+        get_lote_mapa(req).then(rta => {
+            if (!rta) {
+                res.set('Content-Type', 'application/vnd.google-earth.kml+xml');
+                res.status(400).send({ message: 'No se pudo obtener el mapa' });
+            } else {
+                res.status(200).send(rta);
+            }
+        }).catch(
+            err => {
+                res.status(400).send({ message: `Algo inesperado ocurrió` });
+                console.log(err);
+            }
+        )
+    })
     .put(authorize(["admin"]), (req, res) => {
         update_mapa_lote(req).then(rta => {
             res.status(200).send({
