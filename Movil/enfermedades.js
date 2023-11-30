@@ -50,7 +50,7 @@ var post_enfermedades = async (req) => {
         let registro = req.body.data[i]["registro_enfermedad"];
         let imagenes = req.body.data[i]["imagenes"];
 
-        const { hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario } = registro;
+        const { id_registro_enfermedad ,hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario,dada_de_alta } = registro;
         const horaTime = new Date(hora_registro_enfermedad).toLocaleTimeString('es',
             { timeStyle: 'short', hour12: false, timeZone: 'UTC' });
         const fechaTime = new Date(fecha_registro_enfermedad);
@@ -59,10 +59,18 @@ var post_enfermedades = async (req) => {
         const cent = Buffer.from(nombre_enfermedad);
 
         // values.push([horaTime, observacion_registro_enfermedad, fechaTime, id_palma, decoder.write(cent), id_etapa_enfermedad, cc_usuario]);
-        values.push(horaTime, observacion_registro_enfermedad, fechaTime, id_palma, decoder.write(cent), id_etapa_enfermedad, cc_usuario);
         try {
             await cliente_bd.query('BEGIN');
-            const registroQuery = format(`INSERT INTO public."REGISTRO_ENFERMEDAD"(hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario) VALUES (%L) RETURNING id_registro_enfermedad;`, values);
+            let registroQuery;
+            if(id_registro_enfermedad !=null ){
+                console.log('actualiza');
+                registroQuery = `UPDATE public."REGISTRO_ENFERMEDAD" SET ` + (dada_de_alta !== null ? `dada_de_alta = '${dada_de_alta}'` : "") + ` WHERE id_registro_enfermedad = ${id_registro_enfermedad} RETURNING id_registro_enfermedad;`;
+            } else {
+                console.log('crea');
+                values.push(horaTime, observacion_registro_enfermedad, fechaTime, id_palma, decoder.write(cent), id_etapa_enfermedad, cc_usuario,dada_de_alta);
+                registroQuery = format(`INSERT INTO public."REGISTRO_ENFERMEDAD"(hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario, dada_de_alta) VALUES (%L) RETURNING id_registro_enfermedad;`, values);
+            }
+            
 
             // Se agrega el registro
             const registroResult = await cliente_bd.query(registroQuery);

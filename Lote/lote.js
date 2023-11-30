@@ -8,7 +8,7 @@ const BaseDatos = new Pool(config.connectionData);
 
 //retorna el nombre de todos los lotes registrados en la base de datos
 var get_lotes = async () => {
-  let consulta = 'SELECT nombre_lote FROM "LOTE";';
+  let consulta = 'SELECT * FROM "LOTE";';
   const cliente_bd = await BaseDatos.connect();
   let rta = await cliente_bd.query(consulta);
   cliente_bd.release();
