@@ -11,8 +11,6 @@ const BaseDatos = new Pool(config.connectionData);
 
 var post_tratamientos = async (req) => {
     try{
-
-
     var values = [];
     const cliente_bd = await BaseDatos.connect();
     for (i in req.body.data) {
@@ -28,10 +26,6 @@ var post_tratamientos = async (req) => {
         values.push([ horaTime, fechaTime, descripcion_procedimiento, id_registro_enfermedad, id_agroquimico,dosis, unidades, decoder.write(cent), cc_usuario]);
     }
     let sql = format(`INSERT INTO public."TRATAMIENTO"(  hora_tratamiento, fecha_tratamiento, descripcion_procedimiento, id_registro_enfermedad, id_agroquimico, dosis, unidades, tipo_control, cc_usuario ) VALUES %L`, values);
-        console.log('wtf');
-        console.log( req.body);
-        console.log(values);
-        console.log(sql);
         let rta = await cliente_bd.query(sql);
     cliente_bd.release();
 

@@ -63,10 +63,8 @@ var post_enfermedades = async (req) => {
             await cliente_bd.query('BEGIN');
             let registroQuery;
             if(id_registro_enfermedad !=null ){
-                console.log('actualiza');
                 registroQuery = `UPDATE public."REGISTRO_ENFERMEDAD" SET ` + (dada_de_alta !== null ? `dada_de_alta = '${dada_de_alta}'` : "") + ` WHERE id_registro_enfermedad = ${id_registro_enfermedad} RETURNING id_registro_enfermedad;`;
             } else {
-                console.log('crea');
                 values.push(horaTime, observacion_registro_enfermedad, fechaTime, id_palma, decoder.write(cent), id_etapa_enfermedad, cc_usuario,dada_de_alta);
                 registroQuery = format(`INSERT INTO public."REGISTRO_ENFERMEDAD"(hora_registro_enfermedad, observacion_registro_enfermedad, fecha_registro_enfermedad, id_palma, nombre_enfermedad, id_etapa_enfermedad, cc_usuario, dada_de_alta) VALUES (%L) RETURNING id_registro_enfermedad;`, values);
             }

@@ -17,7 +17,7 @@ var post_censos = async (req) => {
         let etapas = req.body.data[i]["etapas"];
         let imagenes = req.body.data[i]["imagenes"];
 
-        const { fecha_censo, hora_censo, observacion_censo, nombre_lote, estado_censo, cc_usuario, nombre_comun_plaga, numero_individuos, id_palma, longitud, latitud } = censo;
+        const { fecha_censo, hora_censo, observacion_censo, nombre_lote, estado_censo, cc_usuario, nombre_comun_plaga,  longitud, latitud, numero_linea, numero_en_linea, orientacion } = censo;
         const horaTime = new Date(hora_censo).toLocaleTimeString('es',
             { timeStyle: 'short', hour12: false, timeZone: 'UTC' });
         const fechaTime = new Date(fecha_censo);
@@ -26,10 +26,10 @@ var post_censos = async (req) => {
         const centnombreLote = Buffer.from(nombre_lote);
         const centnombrePlaga = Buffer.from(nombre_comun_plaga);
 
-        values.push(fechaTime, horaTime, observacion_censo, decoder.write(centnombreLote), estado_censo, cc_usuario, decoder.write(centnombrePlaga), id_palma, longitud, latitud);
+        values.push(fechaTime, horaTime, observacion_censo, decoder.write(centnombreLote), estado_censo, cc_usuario, decoder.write(centnombrePlaga), longitud, latitud, numero_linea, numero_en_linea, orientacion);
         try {
             await cliente_bd.query('BEGIN');
-            const registroQuery = format(`INSERT INTO public."CENSO"(fecha_censo, hora_censo, observacion_censo, nombre_lote, estado_censo, cc_usuario, nombre_comun_plaga, id_palma, longitud, latitud) VALUES (%L) RETURNING id_censo;`, values);
+            const registroQuery = format(`INSERT INTO public."CENSO"(fecha_censo, hora_censo, observacion_censo, nombre_lote, estado_censo, cc_usuario, nombre_comun_plaga,  longitud, latitud,numero_linea, numero_en_linea, orientacion) VALUES (%L) RETURNING id_censo;`, values);
 
             // Se agrega el registro
             const registroResult = await cliente_bd.query(registroQuery);
