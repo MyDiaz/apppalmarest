@@ -40,6 +40,8 @@ var post_viajes = async (req) => {
         } catch (e) {
             console.log(e);
             await cliente_bd.query('ROLLBACK');
+            return { "success": false, "viajesIds": [] };
+
         }
     }
     cliente_bd.release();
