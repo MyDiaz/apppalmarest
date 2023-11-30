@@ -17,16 +17,18 @@ var post_plateos = async (req) => {
 
         const decoder = new StringDecoder('utf8');
         var plateovalues = [];
-        const { idPlateos, nombre_lote, estadoPlateo  } = auxplateo;
+        const { id_plateo, nombre_lote, estado_plateo, tipo_plateo  } = auxplateo;
         const cent = Buffer.from(nombre_lote);
-        plateovalues.push(decoder.write(cent), estadoPlateo);
-
+        const centTipoPlateo = Buffer.from(tipo_plateo);
+        plateovalues.push(decoder.write(cent), estado_plateo, decoder.write(centTipoPlateo));
+        console.log(auxplateo);
+        console.log(plateovalues);
         // Obtenemos el plateo de la base de datos central si existe
         //Si no existe la crea
-        if (!idPlateos) {
+        if (!id_plateo) {
             try {
                 await cliente_bd.query('BEGIN');
-                const plateoQuery = format(`INSERT INTO public."PLATEOS"(nombre_lote, estado_plateo) VALUES (%L) RETURNING id_plateos;`, plateovalues);
+                const plateoQuery = format(`INSERT INTO public."PLATEOS"(nombre_lote, estado_plateo,tipo_plateo) VALUES (%L) RETURNING id_plateos;`, plateovalues);
 
                 // Se agrega el plateo
                 const plateoResult = await cliente_bd.query(plateoQuery);
@@ -40,11 +42,10 @@ var post_plateos = async (req) => {
                     for (j in diarias) {
                         var auxplateodiaria = diarias[j];
                         console.log(auxplateodiaria);
-                        const { fecha_plateo_diario, cantidad_plateo_diario, tipo_plateo, cc_usuario } = auxplateodiaria;
-                        const cent = Buffer.from(tipo_plateo);
-                        plateodiariavalues.push([plateoId, fecha_plateo_diario, cantidad_plateo_diario, decoder.write(cent), cc_usuario]);
+                        const { fecha_plateo_diario, cantidad_plateo_diario, cc_usuario,  linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin} = auxplateodiaria;
+                        plateodiariavalues.push([plateoId, fecha_plateo_diario, cantidad_plateo_diario, cc_usuario,  linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin]);
                     }
-                    let sqlPlateoDiaria = format(`INSERT INTO public."PLATEO_DIARIO"(id_plateos, fecha_plateo_diario, cantidad_plateo_diario, tipo_plateo, cc_usuario) VALUES %L`, plateodiariavalues);
+                    let sqlPlateoDiaria = format(`INSERT INTO public."PLATEO_DIARIO"(id_plateos, fecha_plateo_diario, cantidad_plateo_diario, cc_usuario,  linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin) VALUES %L`, plateodiariavalues);
                         console.log(sqlPlateoDiaria);
                         await cliente_bd.query(sqlPlateoDiaria);
                 }
@@ -58,8 +59,8 @@ var post_plateos = async (req) => {
                 plateosIds.push(-1);
                 await cliente_bd.query('BEGIN');
 
-                let plateoQuery = `UPDATE public."PLATEOS" SET ` + (estadoPlateo !== null ? `estado_plateo = '${estadoPlateo}'` : "") + ` WHERE id_plateos = ${idPlateos}`;
-                if(estadoPlateo){
+                let plateoQuery = `UPDATE public."PLATEOS" SET ` + (estado_plateo !== null ? `estado_plateo = '${estado_plateo}'` : "") + ` WHERE id_plateos = ${id_plateo}`;
+                if(estado_plateo){
                     await cliente_bd.query(plateoQuery);
                 }
 
@@ -67,11 +68,11 @@ var post_plateos = async (req) => {
                 if (diarias.length > 0) {
                     for (j in diarias) {
                         var auxplateodiaria = diarias[j];
-                        const { fecha_plateo_diario, cantidad_plateo_diario, tipo_plateo, cc_usuario } = auxplateodiaria;
-                        const cent = Buffer.from(tipo_plateo);
-                        plateodiariavalues.push([idPlateos, fecha_plateo_diario, cantidad_plateo_diario, decoder.write(cent), cc_usuario]);
+                        console.log(auxplateodiaria);
+                        const { fecha_plateo_diario, cantidad_plateo_diario, cc_usuario, linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin } = auxplateodiaria;
+                        plateodiariavalues.push([id_plateo, fecha_plateo_diario, cantidad_plateo_diario, cc_usuario, linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin]);
                     }
-                    let sqlPlateoDiaria = format(`INSERT INTO public."PLATEO_DIARIO"(id_plateos, id_plateo_diario, fecha_plateo_diario, cantidad_plateo_diario, tipo_plateo, cc_usuario) VALUES %L`, plateodiariavalues);
+                    let sqlPlateoDiaria = format(`INSERT INTO public."PLATEO_DIARIO"(id_plateos, fecha_plateo_diario, cantidad_plateo_diario, cc_usuario, linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin) VALUES %L`, plateodiariavalues);
                     await cliente_bd.query(sqlPlateoDiaria);
                 }
                 await cliente_bd.query('COMMIT');
@@ -79,6 +80,7 @@ var post_plateos = async (req) => {
             } catch (e) {
                 console.log(e);
                 await cliente_bd.query('ROLLBACK');
+                return { "success": false, "plateosIds": [] };
             }
         }
 

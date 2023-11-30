@@ -26,10 +26,10 @@ var post_censos = async (req) => {
         const centnombreLote = Buffer.from(nombre_lote);
         const centnombrePlaga = Buffer.from(nombre_comun_plaga);
 
-        values.push(fechaTime, horaTime, observacion_censo, decoder.write(centnombreLote), estado_censo, cc_usuario, decoder.write(centnombrePlaga),numero_individuos, id_palma, longitud, latitud);
+        values.push(fechaTime, horaTime, observacion_censo, decoder.write(centnombreLote), estado_censo, cc_usuario, decoder.write(centnombrePlaga), id_palma, longitud, latitud);
         try {
             await cliente_bd.query('BEGIN');
-            const registroQuery = format(`INSERT INTO public."CENSO"(fecha_censo, hora_censo, observacion_censo, nombre_lote, estado_censo, cc_usuario, nombre_comun_plaga, numero_individuos,id_palma, longitud, latitud) VALUES (%L) RETURNING id_censo;`, values);
+            const registroQuery = format(`INSERT INTO public."CENSO"(fecha_censo, hora_censo, observacion_censo, nombre_lote, estado_censo, cc_usuario, nombre_comun_plaga, id_palma, longitud, latitud) VALUES (%L) RETURNING id_censo;`, values);
 
             // Se agrega el registro
             const registroResult = await cliente_bd.query(registroQuery);
