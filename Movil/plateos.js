@@ -53,6 +53,8 @@ var post_plateos = async (req) => {
             } catch (e) {
                 console.log(e);
                 await cliente_bd.query('ROLLBACK');
+                return { "success": false, "plateosIds": [] };
+
             }
         } else {
             try {

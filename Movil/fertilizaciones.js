@@ -17,13 +17,13 @@ var post_fertilizaciones = async (req) => {
 
         const decoder = new StringDecoder('utf8');
         var fertilizacionvalues = [];
-        const { idFertilizacion, nombre_lote, estadoFertilizacion } = auxfertilizacion;
+        const { id_fertilizacion, nombre_lote, estado_fertilizacion } = auxfertilizacion;
         const cent = Buffer.from(nombre_lote);
-        fertilizacionvalues.push(decoder.write(cent), estadoFertilizacion);
+        fertilizacionvalues.push(decoder.write(cent), estado_fertilizacion);
 
         // Obtenemos el fertilizacion de la base de datos central si existe
         //Si no existe la crea
-        if (!idFertilizacion) {
+        if (!id_fertilizacion) {
             try {
                 await cliente_bd.query('BEGIN');
                 const fertilizacionQuery = format(`INSERT INTO public."FERTILIZACIONES"(nombre_lote, estado_fertilizacion) VALUES (%L) RETURNING id_fertilizacion`, fertilizacionvalues);
@@ -40,10 +40,10 @@ var post_fertilizaciones = async (req) => {
                     for (j in diarias) {
                         var auxfertilizaciondiaria = diarias[j];
                         console.log(auxfertilizaciondiaria);
-                        const { fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario } = auxfertilizaciondiaria;
-                        fertilizaciondiariavalues.push([fertilizacionId, fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario]);
+                        const { fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario,linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin } = auxfertilizaciondiaria;
+                        fertilizaciondiariavalues.push([fertilizacionId, fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario,linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin]);
                     }
-                    let sqlPlateoDiaria = format(`INSERT INTO public."FERTILIZACION_DIARIA"(id_fertilizacion, fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis,unidades,nombre_fertilizante, cc_usuario) VALUES %L`, fertilizaciondiariavalues);
+                    let sqlPlateoDiaria = format(`INSERT INTO public."FERTILIZACION_DIARIA"(id_fertilizacion, fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis,unidades,nombre_fertilizante, cc_usuario,linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin) VALUES %L`, fertilizaciondiariavalues);
                     console.log(sqlPlateoDiaria);
                     await cliente_bd.query(sqlPlateoDiaria);
                 }
@@ -51,14 +51,15 @@ var post_fertilizaciones = async (req) => {
             } catch (e) {
                 console.log(e);
                 await cliente_bd.query('ROLLBACK');
+                return { "success": false, "fertilizacionesIds": [] };
             }
         } else {
             try {
                 fertilizacionesIds.push(-1);
                 await cliente_bd.query('BEGIN');
 
-                let fertilizacionQuery = `UPDATE public."FERTILIZACIONES" SET ` + (estadoFertilizacion !== null ? `estado_fertilizacion = '${estadoFertilizacion}'` : "") + ` WHERE id_fertilizacion = ${idFertilizacion}`;
-                if (estadoFertilizacion) {
+                let fertilizacionQuery = `UPDATE public."FERTILIZACIONES" SET ` + (estado_fertilizacion !== null ? `estado_fertilizacion = '${estado_fertilizacion}'` : "") + ` WHERE id_fertilizacion = ${id_fertilizacion}`;
+                if (estado_fertilizacion) {
                     await cliente_bd.query(fertilizacionQuery);
                 }
 
@@ -66,10 +67,10 @@ var post_fertilizaciones = async (req) => {
                 if (diarias.length > 0) {
                     for (j in diarias) {
                         var auxfertilizaciondiaria = diarias[j];
-                        const { fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario } = auxfertilizaciondiaria;
-                        fertilizaciondiariavalues.push([idFertilizacion, fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario]);
+                        const { fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario,linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin } = auxfertilizaciondiaria;
+                        fertilizaciondiariavalues.push([id_fertilizacion, fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario,linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin]);
                     }
-                    let sqlPlateoDiaria = format(`INSERT INTO public."FERTILIZACION_DIARIA"(id_fertilizacion, fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario) VALUES %L`, fertilizaciondiariavalues);
+                    let sqlPlateoDiaria = format(`INSERT INTO public."FERTILIZACION_DIARIA"(id_fertilizacion, fecha_fertilizacion_diaria, cantidad_fertilizacion_diaria, dosis, unidades, nombre_fertilizante, cc_usuario,linea_inicio, numero_inicio, orientacion_inicio, linea_fin, numero_fin, orientacion_fin) VALUES %L`, fertilizaciondiariavalues);
                     await cliente_bd.query(sqlPlateoDiaria);
                 }
                 await cliente_bd.query('COMMIT');
@@ -77,6 +78,8 @@ var post_fertilizaciones = async (req) => {
             } catch (e) {
                 console.log(e);
                 await cliente_bd.query('ROLLBACK');
+                return { "success": false, "fertilizacionesIds": [] };
+
             }
         }
 
