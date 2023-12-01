@@ -36,6 +36,7 @@ const fumigaciones = require("./Censo/fumigaciones");
 const historiaClinicaPalma = require("./Palma/palma");
 const erradicaciones = require("./Palma/erradicacion");
 const precipitaciones = require("./Precipitaciones/precipitaciones");
+const censoProductivo = require("./censo_productivo/censo_productivo");
 
 const movilTratamientos = require("./Movil/tratamientos")
 const movilPlateos = require("./Movil/plateos")
@@ -92,6 +93,7 @@ app.use(fumigaciones);
 app.use(historiaClinicaPalma);
 app.use(erradicaciones);
 app.use(precipitaciones);
+app.use(censoProductivo);
 
 app.use(function(req, res, next) {
     res.status(404).send({
