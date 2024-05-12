@@ -10,16 +10,20 @@ var consulta_registrar = async(req) => {
         cc_usuario, 
         nombre_usuario, 
         cargo_empresa, 
-        contrasena_usuario)
-        VALUES ('${req.body.cc_usuario}', '${decodeURIComponent(req.body.nombre_usuario)}',
-        '${decodeURIComponent(req.body.cargo_empresa)}', '${encriptar_clave(decodeURIComponent(req.body.contrasena_usuario))}');`;
+        contrasena_usuario,
+        validado)
+        VALUES ('${req.body.cc_usuario}',
+            '${decodeURIComponent(req.body.nombre_usuario)}',
+            '${decodeURIComponent(req.body.cargo_empresa)}',
+            '${encriptar_clave(decodeURIComponent(req.body.contrasena_usuario))}',
+            true);`;
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();
     return rta;
 }
 
-rutas.post('/registro', (req, res) => {
+rutas.post('/usuarios', (req, res) => {
     //pregunta si todos los campos requeridos están presentes 
     if (!req.body.cc_usuario || !req.body.nombre_usuario || !req.body.cargo_empresa || !req.body.contrasena_usuario) {
         res.status(400).send({
