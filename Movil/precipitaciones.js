@@ -12,14 +12,11 @@ var postPrecipitacion = async (req) => {
     const cliente_bd = await BaseDatos.connect();
     for (i in req.body.data) {
         let body = req.body.data[i];
-        console.log(i);
-        console.log(body);
         const { fecha_registro_precipitacion, cantidad_precipitacion, cc_usuario} = body;
         values.push([fecha_registro_precipitacion, cantidad_precipitacion, cc_usuario]);
     }
     let sql = format(`INSERT INTO public."PRECIPITACION"(fecha_registro_precipitacion, cantidad_precipitacion, cc_usuario) VALUES %L`, values);
     try {
-        console.log(sql);
         await cliente_bd.query(sql);
         cliente_bd.release();
         return { "success": true};
