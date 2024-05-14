@@ -68,12 +68,10 @@ var post__enfermedad_con_etapas = async(req) => {
     }
 }
 
-var actualizar_enfermedad_con_etapas = async(req) => {
-    function estaVacio(elemento) {
-        return elemento === '';
-    }
+var actualizar_enfermedad_con_etapas = async(req, res) => {
+    const estaVacio = elemento => elemento === '';
 
-    algo_tratamiento = req.body.tratamiento_etapa_enfermedad.findIndex(estaVacio) == -1;
+    algo_tratamiento = req.body.tratamientos_etapa_enfermedad.findIndex(estaVacio) == -1;
     algo_etapas = req.body.etapas_enfermedad.findIndex(estaVacio) == -1;
 
     if (!req.params.nombre_enfermedad || !algo_tratamiento || !algo_etapas) {
@@ -186,9 +184,9 @@ var actualizar_etapa_enfermedad = async(id_etapa_enfermedad, etapa_enfermedad, t
     return rta;
 }
 
-var eliminar_etapa_enfermedad = async(nombre_enfermedad) => {
-    let consulta = `update public."ENFERMEDAD" set fue_borrado = true
-    where nombre_enfermedad = '${nombre_enfermedad}';`
+var eliminar_etapa_enfermedad = async(id_etapa_enfermedad) => {
+    let consulta = `update public."ETAPAS_ENFERMEDAD" set fue_borrado = true
+    where id_etapa_enfermedad = '${id_etapa_enfermedad}';`
         //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
@@ -199,7 +197,7 @@ var eliminar_etapa_enfermedad = async(nombre_enfermedad) => {
 var actualizar_nombre_enfermedad = async(nombre_enfermedad_nuevo, nombre_enfermedad_viejo) => {
     let consulta = `UPDATE public."ENFERMEDAD"
 	SET nombre_enfermedad='${decodeURIComponent(nombre_enfermedad_nuevo)}'
-    WHERE nombre_comun_plaga='${nombre_enfermedad_viejo}';`
+    WHERE nombre_enfermedad='${nombre_enfermedad_viejo}';`
         //console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
@@ -277,7 +275,7 @@ rutas.route('/enfermedad-etapas/:nombre_enfermedad')
         })
     })
     .put(authorize(["admin"]), (req, res) => {
-        actualizar_enfermedad_con_etapas(req, res).then(rta => {})
+        actualizar_enfermedad_con_etapas(req, res).then(() => res);
     })
 
 module.exports = rutas;
