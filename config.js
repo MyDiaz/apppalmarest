@@ -3,14 +3,14 @@ const config = {};
 
 config.connectionData = {
   user: "postgres",
-  host: "db",
+  host: "sigpa_db",
   database: "SIGPA",
   password: "8vg7D/&Lr485",
-  port: 65489,
+  port: 5432,
 };
 
 config.host = {
-  hostname: "0.0.0.0",
+  hostname: "192.168.1.11",
   port: "3000",
 };
 
