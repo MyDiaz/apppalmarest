@@ -19,7 +19,7 @@ var get_viajes = async() => {
             FROM public."COSECHA_DIARIA"
             GROUP BY id_cosecha) as CD
         on C.id_cosecha = CD.id_cosecha
-        group by V.id_viaje;`;
+        group by V.id_viaje, V.hora_cargue, V.hora_salida, V.id_viaje, V.fecha_viaje, V.kilos_total_racimos_finca, V.kilos_total_racimos_extractora;`;
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();

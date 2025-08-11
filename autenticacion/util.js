@@ -63,7 +63,7 @@ const authorize = (roles) => {
             if (!token_user) {
                 res.status(401).send({ success: false, message: "La sesión no es válida o ha expirado" })
             } else {
-                console.log("token_user", token_user);
+                // console.log("token_user", token_user);
                 get_usuario(token_user.sub.cc_usuario).then(db_user => {
                     console.log("db_user", db_user);
                     if (!db_user) {

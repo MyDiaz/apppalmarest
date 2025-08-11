@@ -15,8 +15,8 @@ rutas.post('/login', function(req, res) {
             if (user.validado) {
                 bcrypt.compare(decodeURIComponent(req.body.contrasena_usuario), user.contrasena_usuario, (err, isValid) => {
                     if (err) {
-                        res.status(501).send({ message: "Error inesperado" });
                         console.log(err);
+                        res.status(501).send({ message: "Error inesperado" });
                     }
                     if (!isValid) {
                         res.status(401).send({ success: false, message: "Usuario o contraseña incorrectos" });

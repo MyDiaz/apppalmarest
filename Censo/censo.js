@@ -8,20 +8,19 @@ const format = require("pg-format");
 const BaseDatos = new Pool(config.connectionData);
 
 //retorna el registro de un censo registrado en un lote
-var get_censos = async () => {
-  let consulta = `SELECT *
-  FROM public."CENSO"
-  INNER JOIN public."CENSO_ETAPAPLAGA"
-  ON public."CENSO".id_censo = public."CENSO_ETAPAPLAGA".id_censo
-  INNER JOIN public."ETAPAS_PLAGA"
-  ON public."CENSO_ETAPAPLAGA".id_etapa_plaga = public."ETAPAS_PLAGA".id_etapa_plaga;
-  ;
-                  `;
-  const cliente_bd = await BaseDatos.connect();
-  let rta = await cliente_bd.query(consulta);
-  cliente_bd.release();
-  return rta;
-};
+var get_censos = async() => {
+    let consulta = `SELECT *
+    FROM public."CENSO"
+    INNER JOIN public."CENSO_ETAPAPLAGA"
+    ON public."CENSO".id_censo = public."CENSO_ETAPAPLAGA".id_censo
+    INNER JOIN public."ETAPAS_PLAGA"
+    ON public."CENSO_ETAPAPLAGA".id_etapa_plaga = public."ETAPAS_PLAGA".id_etapa_plaga;
+    `;
+    const cliente_bd = await BaseDatos.connect();
+    let rta = await cliente_bd.query(consulta);
+    cliente_bd.release();
+    return rta;
+}
 var get_imagenes_censo = async (id) => {
   let sql = format(
     `SELECT * FROM public."IMAGEN_CENSO"
