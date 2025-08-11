@@ -2,11 +2,14 @@ const fs = require("fs");
 const config = {};
 
 config.connectionData = {
-  user: "postgres",
-  host: "localhost",
-  database: "SIGPA",
-  password: "8vg7D/&Lr485",
+  user: "neondb_owner",
+  host: "ep-lucky-firefly-aepa9miq-pooler.c-2.us-east-2.aws.neon.tech",
+  database: "neondb",
+  password: "npg_EHzFN8Y5WpRB",
   port: 5432,
+  ssl: {
+    rejectUnauthorized: false, // Requerido para sslmode=require
+  },
 };
 
 config.host = {
