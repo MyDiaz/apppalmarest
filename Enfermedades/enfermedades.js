@@ -42,10 +42,24 @@ var get_enfermedades_etapa_concat = async(nombre_enfermedad) => {
     return rta.rows;
 }
 
+//Si ya existio una enfermedad con el nombre que se esta registrado, modificado el fue_borrado a FALSE, de lo contrario hace el insert de la enfermedad
 var post_enfermedad = async(req) => {
-    let consulta = `INSERT INTO public."ENFERMEDAD"( nombre_enfermedad,
-    "procedimiento_tratamiento_enfermedad") VALUES 
-    ( '${decodeURIComponent(req.body.nombre_enfermedad)}' , '${decodeURIComponent(req.body.procedimiento_tratamiento_enfermedad)}' );`
+    let enfermedad = await get_enfermedad(decodeURIComponent(req.body.nombre_enfermedad));
+    let consulta;
+    if (enfermedad.length > 0) {
+        if (!enfermedad[0].fue_borrado) {
+            return;
+        }
+        consulta = `UPDATE public."ENFERMEDAD"
+        SET procedimiento_tratamiento_enfermedad='${decodeURIComponent(req.body.procedimiento_tratamiento_enfermedad)}',
+            fue_borrado=false
+        WHERE nombre_enfermedad = '${decodeURIComponent(req.body.nombre_enfermedad)}';`;
+    } else {
+        consulta = `INSERT INTO public."ENFERMEDAD"( nombre_enfermedad,
+        "procedimiento_tratamiento_enfermedad") VALUES 
+        ( '${decodeURIComponent(req.body.nombre_enfermedad)}' , '${decodeURIComponent(req.body.procedimiento_tratamiento_enfermedad)}' );`
+    }
+    
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();
@@ -65,10 +79,14 @@ var put_enfermedad = async(req) => {
     return true;
 }
 
+//Borra logicamente (setea fue_borrado a TRUE) una enfermedad y todas las etapas asociadas a una enfermedad
 var eliminar_enfermedad = async(nombre_enfermedad) => {
     let consulta = `UPDATE public."ENFERMEDAD"
-	SET fue_borrado = true
-	WHERE nombre_enfermedad='${nombre_enfermedad}';`;
+    SET fue_borrado = true
+    WHERE nombre_enfermedad='${nombre_enfermedad}';
+    UPDATE public."ETAPAS_ENFERMEDAD"
+    SET fue_borrado = true
+    WHERE nombre_enfermedad='${nombre_enfermedad}';`;
     console.log(consulta);
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
