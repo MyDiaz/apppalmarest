@@ -21,9 +21,14 @@ var get_enfermedades_con_etapas = async () => {
   return rta;
 };
 
-var post__enfermedad_con_etapas = async (req) => {
+var post_enfermedad_con_etapas = async (req) => {
   let values = "";
   let numero_etapas = req.body.etapas_enfermedad.length;
+  //para evitar que se cree una enfermedad con etapas sin etapas
+  if (numero_etapas) {
+    return;
+  }
+
   var enfermedad;
   let nombre_enfermedad_decode = decodeURIComponent(req.body.nombre_enfermedad);
   await get_enfermedad(nombre_enfermedad_decode)
@@ -58,7 +63,7 @@ var post__enfermedad_con_etapas = async (req) => {
     var resp = await cliente_bd.query(consulta);
     cliente_bd.release();
     return resp;
-  } else {
+  } else if (enfermedad[0].fue_borrado) {
     for (let i = 0; i < numero_etapas; i = i + 1) {
       values =
         values +
@@ -69,10 +74,16 @@ var post__enfermedad_con_etapas = async (req) => {
               req.body.tratamiento_etapa_enfermedad[i]
             )}'),`;
     }
-    let consulta = `INSERT INTO public."ETAPAS_ENFERMEDAD" 
+    //si es una enfermedad que fue borrada logicamente se receupra, se modifica fue_borrado a FALSE, de lo contrario hace el INSERT
+    let consulta_enfermedad = `UPDATE public."ENFERMEDAD"
+        SET fue_borrado = false,
+            procedimiento_tratamiento_enfermedad = NULL
+        WHERE nombre_enfermedad = ('${nombre_enfermedad_decode}');`;
+    let consulta_etapas = `INSERT INTO public."ETAPAS_ENFERMEDAD" 
         (etapa_enfermedad, nombre_enfermedad, tratamiento_etapa_enfermedad)
         VALUES ${values}`;
-    consulta = consulta.slice(0, -1) + ";";
+    consulta_etapas = consulta_etapas.slice(0, -1) + ";";
+    let consulta = `${consulta_enfermedad} ${consulta_etapas}`;
     const cliente_bd = await BaseDatos.connect();
     var rta = await cliente_bd.query(consulta);
     cliente_bd.release();
@@ -84,13 +95,16 @@ var actualizar_enfermedad_con_etapas = async (req, res) => {
   function estaVacio(elemento) {
     return elemento === "";
   }
-  console.log(req.body);
+  // console.log(req.body);
 
   algo_tratamiento =
     req.body.tratamientos_etapa_enfermedad.findIndex(estaVacio) == -1;
   algo_etapas = req.body.etapas_enfermedad.findIndex(estaVacio) == -1;
+  //Evita que se actualice una enfermedad y que quede sin etapas cuando es una enfermedad con etapas
+  if (!req.params.nombre_enfermedad || !algo_tratamiento || !algo_etapas
+      || !req.body.tratamientos_etapa_enfermedad
+      || req.body.tratamientos_etapa_enfermedad.length == 0) {
 
-  if (!req.params.nombre_enfermedad || !algo_tratamiento || !algo_etapas) {
     res.status(400).send({ message: "Ingrese todos los campos" });
   } else {
     try {
@@ -305,7 +319,7 @@ rutas
     if (!req.body.nombre_enfermedad || !algo_tratamiento || !algo_etapas) {
       res.status(400).send({ message: "Ingrese todos los campos" });
     } else {
-      post__enfermedad_con_etapas(req)
+      post_enfermedad_con_etapas(req)
         .then((rta) => {
           //console.log("rta en post", rta);
           if (!rta) {
