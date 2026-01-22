@@ -38,6 +38,17 @@ var get_censo_productivo_lote = async (lote) => {
   return rta;
 };
 
+var get_censo_min_year = async () => {
+  const consulta = `
+  SELECT min(fecha_registro_censo_productivo)
+  FROM public."CENSO_PRODUCTIVO"`;
+  const cliente_bd = await BaseDatos.connect();
+  let rta = await cliente_bd.query(consulta);
+  cliente_bd.release();
+  console.log(rta);
+  return rta?.rows[0].min?.getFullYear();
+};
+
 var postCensoProductivo = async (req) => {
   let censosIds = [];
 
@@ -138,6 +149,28 @@ rutas
         console.log(err);
       });
   });
+
+rutas
+  .route("/censo-productivo/min_year")
+  .get(authorize(["admin", "user"]), (req, res) => {
+    get_censo_min_year()
+      .then((rta) => {
+        if (!rta) {
+          res.status(200).send({
+            min_year: 2000,
+          });
+        } else {
+          res.status(200).send({
+            min_year: rta,
+          });
+        }
+      })
+      .catch((err) => {
+        res.status(500).send({ message: `Algo inesperado ocurrió` });
+        console.log(err);
+      });
+  });
+
 
 rutas
   .route("/censo-productivo/:lote")
