@@ -108,27 +108,12 @@ var actualizarContrasenaUsuario = async(cc_usuario, contrasenaNueva) => {
     return "La contraseña se cambió correctamente";
 }
 
-const containsUppercase = ".*[A-Z].*";
-const containsLowercase = ".*[a-z].*";
-const containsDigit = ".*[0-9].*";
-const containsSpecial = ".*[,;_\\-'#$%&/()=?¡¿!].*";
-const containsOnlyValid = "^[a-zA-Z0-9,;_\\-'#$%&/()=?¡¿!]+$";
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[,;_\-'#$%&/()=?¡¿!*])[A-Za-z\d,;_\-'#$%&/()=?¡¿!*]{8,}$/;
 
 const validarContrasena = (contrasena) => {
-    if (contrasena.length < 8) {
-        return "La contraseña debe tener al menos 8 caracteres";
-    }
-
-    console.log(!contrasena.match(containsDigit), !contrasena.match(containsUppercase), !contrasena.match(containsLowercase),
-        !contrasena.match(containsSpecial));
-
-    if (!contrasena.match(containsDigit) || !contrasena.match(containsUppercase) || !contrasena.match(containsLowercase)
-        || !contrasena.match(containsSpecial)) {
-        return "La contraseña debe contener al menos una mayúscula, una minúscula, un dígito y un caracter especial (,;_\-'#$%&/()=?¡¿!)";
-    }
-    if (!contrasena.match(containsOnlyValid)) {
-        return "La contraseña contiene caracteres inválidos";
-    }
+    if (!passwordRegex.test(contrasena)) {
+    return "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial";
+  }
 }
 
 rutas.route('/usuarios')
