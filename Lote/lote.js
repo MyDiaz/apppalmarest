@@ -216,9 +216,9 @@ rutas
           soft_delete_lote(decodeURIComponent(req.params["nombre"])).then(rta => {
               //console.log("req.params", req.params);
               if (!rta) {
-                  res.status(400).send({ message: 'No se pudo eliminar la enfermedad.' });
+                  res.status(400).send({ message: 'No se pudo eliminar el lote.' });
               } else {
-                  res.status(200).send({ message: 'Se eliminó la enfermedad.' });
+                  res.status(200).send({ message: 'Se eliminó el lote.' });
               }
           }).catch(err => {
               console.log(err);
