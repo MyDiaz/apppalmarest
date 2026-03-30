@@ -7,10 +7,10 @@ const BaseDatos = require("../db");
 
 //retorna el registro de las erradicaciones en un lote
 var get_erradicaciones = async() => {
-    let consulta = `select P.id_palma, E.causa_erradicacion, E.fecha_erradicacion, P.nombre_lote
+    let consulta = `select P.id_palma, E.causa_erradicacion, E.fecha_erradicacion, P.nombre_lote, E.cc_usuario, P.edad_palma, E.id_erradicacion
     from "ERRADICACION" as E
     inner join "PALMA" P
-    on P.id_palma = E.id_palma`;
+    on P.id_palma = E.id_palma;`;
     const cliente_bd = await BaseDatos.connect();
     let rta = await cliente_bd.query(consulta);
     cliente_bd.release();

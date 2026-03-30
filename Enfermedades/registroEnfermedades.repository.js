@@ -35,7 +35,33 @@ var get_imagenes_registro_enfermedad = async (id) => {
   return rta;
 };
 
+var get_pend_por_tratar = async (id) => {
+    let consulta = `SELECT 
+        RE.id_registro_enfermedad,
+        RE.fecha_registro_enfermedad,
+        RE.nombre_enfermedad,
+        EE.etapa_enfermedad,
+        RE.id_etapa_enfermedad,
+        T.id_tratamiento,
+        RE.id_palma,
+        P.nombre_lote,
+        RE.dada_de_alta
+    FROM "REGISTRO_ENFERMEDAD" RE
+    FULL JOIN "TRATAMIENTO" T
+        ON RE.id_registro_enfermedad = T.id_registro_enfermedad
+    LEFT JOIN "ETAPAS_ENFERMEDAD" EE
+        ON EE.id_etapa_enfermedad = RE.id_etapa_enfermedad
+    inner join "PALMA" as P
+		on P.id_palma = RE.id_palma
+    where id_tratamiento IS NULL and RE.dada_de_alta is NOT true;`;
+    const cliente_bd = await BaseDatos.connect();
+    let rta = await cliente_bd.query(consulta);
+    cliente_bd.release();
+    return rta;
+}
+
 module.exports = {
   get_registro_enfermedades,
   get_imagenes_registro_enfermedad,
+  get_pend_por_tratar,
 };
