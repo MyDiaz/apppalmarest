@@ -4,7 +4,9 @@
   "description": "backend de AppPalma",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "test": "cross-env NODE_ENV=test jest --runInBand",
+    "test:watch": "cross-env NODE_ENV=test jest --watch",
+    "test:coverage": "cross-env NODE_ENV=test jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -30,5 +32,10 @@
     "passport-jwt": "^4.0.0",
     "pg": "^8.2.1",
     "pg-format": "^1.0.4"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^27.5.1",
+    "supertest": "^6.3.4"
   }
 }

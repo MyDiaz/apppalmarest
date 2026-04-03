@@ -297,5 +297,7 @@ rutas.route('/usuarios/:cc_usuario')
             }
         )
     })
+rutas.validarContrasena = validarContrasena;
+rutas.scapePostgreSQL = scapePostgreSQL;
 
 module.exports = rutas;
