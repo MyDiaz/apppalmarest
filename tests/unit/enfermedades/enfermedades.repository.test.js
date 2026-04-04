@@ -71,4 +71,73 @@ describe("Enfermedades repository", () => {
     expect(mockQuery.mock.calls[0][0]).toContain(`WHERE nombre_enfermedad='Anillo rojo'`);
     expect(result).toEqual({ rowCount: 2 });
   });
+
+  it("post_enfermedad inserts a new disease when none exists", async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rowCount: 1 });
+
+    const { post_enfermedad } = require("../../../Enfermedades/enfermedades.repository");
+    const result = await post_enfermedad({
+      body: {
+        nombre_enfermedad: encodeURIComponent("Rojas"),
+        procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+      },
+    });
+
+    expect(mockQuery).toHaveBeenCalledTimes(2);
+    expect(mockQuery.mock.calls[1][0]).toContain(`INSERT INTO public."ENFERMEDAD"`);
+    expect(result).toEqual({ rowCount: 1 });
+  });
+
+  it("post_enfermedad restores a soft deleted disease", async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ fue_borrado: true }] })
+      .mockResolvedValueOnce({ rowCount: 1 });
+
+    const { post_enfermedad } = require("../../../Enfermedades/enfermedades.repository");
+    const result = await post_enfermedad({
+      body: {
+        nombre_enfermedad: encodeURIComponent("Rojas"),
+        procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+      },
+    });
+
+    expect(mockQuery.mock.calls[1][0]).toContain(`SET procedimiento_tratamiento_enfermedad='Tratamiento'`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`fue_borrado=false`);
+    expect(result).toEqual({ rowCount: 1 });
+  });
+
+  it("post_enfermedad returns undefined when the disease already exists and is active", async () => {
+    mockQuery.mockResolvedValueOnce({
+      rows: [{ fue_borrado: false }],
+    });
+
+    const { post_enfermedad } = require("../../../Enfermedades/enfermedades.repository");
+    const result = await post_enfermedad({
+      body: {
+        nombre_enfermedad: encodeURIComponent("Rojas"),
+        procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+      },
+    });
+
+    expect(result).toBeUndefined();
+    expect(mockQuery).toHaveBeenCalledTimes(1);
+  });
+
+  it("put_enfermedad updates the disease row", async () => {
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+
+    const { put_enfermedad } = require("../../../Enfermedades/enfermedades.repository");
+    const result = await put_enfermedad({
+      params: { nombre_enfermedad: "Vieja" },
+      body: {
+        nombre_enfermedad: "Nueva",
+        procedimiento_tratamiento_enfermedad: "Tratamiento nuevo",
+      },
+    });
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`nombre_enfermedad='Nueva'`);
+    expect(result).toBe(true);
+  });
 });

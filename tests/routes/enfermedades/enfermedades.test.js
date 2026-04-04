@@ -36,18 +36,26 @@ describe("enfermedades routes", () => {
 
   it("GET /enfermedades returns the active disease list", async () => {
     mockGetEnfermedades.mockResolvedValue({
-      rows: [{ nombre_enfermedad: "Rojas" }],
+      rows: [{ nombre_enfermedad: "Pudrición de Cogollo" }],
     });
 
     const response = await request(buildApp()).get("/enfermedades");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual([{ nombre_enfermedad: "Rojas" }]);
+    expect(response.body).toEqual([{ nombre_enfermedad: "Pudrición de Cogollo" }]);
+  });
+
+  it("GET /enfermedades returns error", async () => {
+    mockGetEnfermedades.mockResolvedValue(undefined);
+    const response = await request(buildApp()).get("/enfermedades");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ message: "No se pudo obtener el listado de enfermedades" });
   });
 
   it("POST /enfermedades rejects incomplete payloads", async () => {
     const response = await request(buildApp()).post("/enfermedades").send({
-      nombre_enfermedad: "Rojas",
+      nombre_enfermedad: "Pudrición de Cogollo",
     });
 
     expect(response.status).toBe(400);
@@ -56,12 +64,84 @@ describe("enfermedades routes", () => {
 
   it("GET /enfermedad/:nombre_enfermedad returns the disease row", async () => {
     mockGetEnfermedad.mockResolvedValue([
-      { nombre_enfermedad: "Rojas", fue_borrado: false },
+      { nombre_enfermedad: "Pudrición de Cogollo", fue_borrado: false },
     ]);
 
-    const response = await request(buildApp()).get("/enfermedad/Rojas");
+    const response = await request(buildApp()).get("/enfermedad/Pudrición de Cogollo");
 
     expect(response.status).toBe(200);
-    expect(response.body.nombre_enfermedad).toBe("Rojas");
+    expect(response.body.nombre_enfermedad).toBe("Pudrición de Cogollo");
+  });
+
+  it("GET /enfermedad/:nombre_enfermedad returns 400 when the disease is missing", async () => {
+    mockGetEnfermedad.mockResolvedValue(null);
+
+    const response = await request(buildApp()).get("/enfermedad/Pudrición de Cogollo");
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("enfermedad");
+  });
+
+  it("POST /enfermedades returns 200 when insertion succeeds", async () => {
+    mockPostEnfermedad.mockResolvedValue({ rowCount: 1 });
+
+    const response = await request(buildApp()).post("/enfermedades").send({
+      nombre_enfermedad: encodeURIComponent("Pudrición de Cogollo"),
+      procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toContain("agreg");
+  });
+
+  it("POST /enfermedades returns 400 when insertion returns nothing", async () => {
+    mockPostEnfermedad.mockResolvedValue(null);
+
+    const response = await request(buildApp()).post("/enfermedades").send({
+      nombre_enfermedad: encodeURIComponent("Pudrición de Cogollo"),
+      procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("insertar");
+  });
+
+  it("POST /enfermedades returns 500 when insertion throws", async () => {
+    mockPostEnfermedad.mockRejectedValue(new Error("boom"));
+
+    const response = await request(buildApp()).post("/enfermedades").send({
+      nombre_enfermedad: encodeURIComponent("Pudrición de Cogollo"),
+      procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body.message).toContain("Algo inesperado");
+  });
+
+  it("GET /enfermedades_etapas_concat returns the joined rows", async () => {
+    mockGetConcat.mockResolvedValue([{ concat: "Pudrición de Cogollo etapa 1" }]);
+
+    const response = await request(buildApp()).get("/enfermedades_etapas_concat");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([{ concat: "Pudrición de Cogollo etapa 1" }]);
+  });
+
+  it("GET /enfermedades_etapas_concat returns 400 when the repository returns nothing", async () => {
+    mockGetConcat.mockResolvedValue(null);
+
+    const response = await request(buildApp()).get("/enfermedades_etapas_concat");
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("concat");
+  });
+
+  it("GET /enfermedades_etapas_concat returns 400 when the repository throws", async () => {
+    mockGetConcat.mockRejectedValue(new Error("boom"));
+
+    const response = await request(buildApp()).get("/enfermedades_etapas_concat");
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("Algo inesperado");
   });
 });

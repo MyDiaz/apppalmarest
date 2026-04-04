@@ -91,4 +91,55 @@ describe("Enfermedades etapas repository", () => {
     expect(mockQuery.mock.calls[0][0]).toContain(`UPDATE public."ENFERMEDAD"`);
     expect(mockQuery.mock.calls[0][0]).toContain(`UPDATE public."ETAPAS_ENFERMEDAD"`);
   });
+
+  it("post_enfermedad_con_etapas returns early when stages are present", async () => {
+    const { post_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const result = await post_enfermedad_con_etapas({
+      body: {
+        nombre_enfermedad: encodeURIComponent("Anillo rojo"),
+        etapas_enfermedad: [encodeURIComponent("Etapa 1")],
+        tratamiento_etapa_enfermedad: [encodeURIComponent("Tratamiento 1")],
+      },
+    });
+
+    expect(result).toBeUndefined();
+    expect(mockQuery).not.toHaveBeenCalled();
+  });
+
+  it("actualizar_enfermedad_con_etapas updates, inserts, deletes, and renames stages", async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ id_etapa_enfermedad: 1 }] })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 1 });
+
+    const { actualizar_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    await actualizar_enfermedad_con_etapas(
+      {
+        params: { nombre_enfermedad: "Vieja" },
+        body: {
+          nombre_enfermedad: "Nueva",
+          etapas_enfermedad: [encodeURIComponent("Etapa 1"), encodeURIComponent("Etapa 2")],
+          tratamientos_etapa_enfermedad: [encodeURIComponent("Tratamiento 1"), encodeURIComponent("Tratamiento 2")],
+          ids_etapas_enfermedad: [-1, 2],
+        },
+      },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining("correctamente") })
+    );
+    expect(mockQuery.mock.calls[1][0]).toContain(`INSERT INTO public."ETAPAS_ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[2][0]).toContain(`UPDATE public."ETAPAS_ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[3][0]).toContain(`set fue_borrado = true`);
+    expect(mockQuery.mock.calls[4][0]).toContain(`UPDATE public."ENFERMEDAD"`);
+  });
 });

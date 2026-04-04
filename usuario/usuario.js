@@ -93,7 +93,7 @@ var actualizarContrasenaUsuario = async (cc_usuario, contrasenaNueva) => {
   const cliente_bd = await BaseDatos.connect();
   await cliente_bd.query(consulta);
   cliente_bd.release();
-  return "La contraseÃ±a se cambiÃ³ correctamente";
+  return "La contraseña se cambió correctamente";
 };
 
 rutas.route("/usuarios").get(authorize(["admin", "user"]), (req, res) => {
@@ -106,14 +106,14 @@ rutas.route("/usuarios").get(authorize(["admin", "user"]), (req, res) => {
       }
     })
     .catch(() => {
-      res.status(400).send({ message: "Algo inesperado ocurriÃ³ en obtener el listado de usuarios" });
+      res.status(400).send({ message: "Algo inesperado ocurrió en obtener el listado de usuarios" });
     });
 });
 
 /**
  * Le permite a un usuario cambiar los datos de su perfil:
  * - correo
- * - telÃ©fono
+ * - teléfono
  * - nombre
  */
 rutas.route("/self/profile").put(authorize(["user", "admin"]), (req, res) => {
@@ -128,7 +128,7 @@ rutas.route("/self/profile").put(authorize(["user", "admin"]), (req, res) => {
   }
   if (!telefono) {
     res.status(400).send({
-      message: "Se debe proporcionar un telefono",
+      message: "Se debe proporcionar un teléfono",
     });
     return;
   }
@@ -143,7 +143,7 @@ rutas.route("/self/profile").put(authorize(["user", "admin"]), (req, res) => {
     (rta) => {
       if (!rta) {
         res.status(400).send({
-          message: "No se pudo obtener la informaciÃ³n de este usuario",
+          message: "No se pudo obtener la información de este usuario",
         });
       } else {
         get_usuario(cc_usuario).then((rta) =>
@@ -163,7 +163,7 @@ rutas.route("/self/profile").put(authorize(["user", "admin"]), (req, res) => {
 });
 
 /**
- * Le permite a un usuario cambiar su contraseÃ±a.
+ * Le permite a un usuario cambiar su contraseña.
  */
 rutas.route("/self/password").put(authorize(["user", "admin"]), (req, res) => {
   const contrasena_actual = req.body.contrasena_actual;
@@ -172,13 +172,13 @@ rutas.route("/self/password").put(authorize(["user", "admin"]), (req, res) => {
   console.log(contrasena_nueva);
   if (!contrasena_actual) {
     res.status(400).json({
-      message: "La contraseÃ±a actual no puede ser vacÃ­a",
+      message: "La contraseña actual no puede ser vacía",
     });
     return;
   }
   if (!contrasena_nueva) {
     res.status(400).json({
-      message: "La contraseÃ±a nueva no puede ser nula",
+      message: "La contraseña nueva no puede ser nula",
     });
     return;
   }
@@ -193,7 +193,7 @@ rutas.route("/self/password").put(authorize(["user", "admin"]), (req, res) => {
   get_usuario(cc_usuario).then((rta) => {
     if (!rta) {
       res.status(400).send({
-        message: "No se pudo obtener la informaciÃ³n de este usuario",
+        message: "No se pudo obtener la información de este usuario",
       });
     } else {
       console.log(rta);
@@ -208,7 +208,7 @@ rutas.route("/self/password").put(authorize(["user", "admin"]), (req, res) => {
           }
           if (!isValid) {
             res.status(400).send({
-              message: "La contraseÃ±a actual ingresada no es correca",
+              message: "La contraseña actual ingresada no es correcta",
             });
             return;
           }
@@ -228,7 +228,7 @@ rutas
       .then((rta) => {
         if (!rta) {
           res.status(400).send({
-            message: "No se pudo obtener la informaciÃ³n de este usuario",
+            message: "No se pudo obtener la información de este usuario",
           });
         } else {
           res.json({
@@ -243,7 +243,7 @@ rutas
         }
       })
       .catch(() => {
-        res.status(400).send({ message: "Algo inesperado ocurriÃ³." });
+        res.status(400).send({ message: "Algo inesperado ocurrió." });
       });
   })
   .put(authorize(["admin"]), (req, res) => {
@@ -251,18 +251,18 @@ rutas
       .then((rta) => {
         if (!rta) {
           res.status(400).send({
-            message: "No se pudo obtener la informaciÃ³n de este usuario.",
+            message: "No se pudo obtener la información de este usuario.",
           });
         } else {
           actualizarDatosUsuario(req)
             .then((rta) => {
               if (!rta) {
                 res.status(400).send({
-                  message: "No se pudo actualizar la informaciÃ³n de este usuario.",
+                  message: "No se pudo actualizar la información de este usuario.",
                 });
               } else {
                 res.status(200).send({
-                  message: `El usuario se guardÃ³ exitosamente`,
+                  message: `El usuario se guardó exitosamente`,
                 });
               }
             })
@@ -274,7 +274,7 @@ rutas
       })
       .catch((err) => {
         console.log("Error en obteniendo usuario", err);
-        res.status(400).send({ message: "Algo inesperado ocurriÃ³." });
+        res.status(400).send({ message: "Algo inesperado ocurrió." });
       });
   })
   .patch(authorize(["admin"]), (req, res) => {
@@ -282,16 +282,16 @@ rutas
       .then((rta) => {
         if (!rta) {
           res.status(400).send({
-            message: "No se pudo cambiar validaciÃ³n de usuario.",
+            message: "No se pudo cambiar validación de usuario.",
           });
         } else {
           res.status(200).send(rta);
         }
       })
       .catch((err) => {
-        console.log("Error en cambiar validaciÃ³n de usuario", err);
+        console.log("Error en cambiar validación de usuario", err);
         res.status(400).send({
-          message: "Algo inesperado ocurriÃ³ al intentar deshabilitar el usuario",
+          message: "Algo inesperado ocurrió al intentar deshabilitar el usuario",
         });
       });
   });
