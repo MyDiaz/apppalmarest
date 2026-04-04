@@ -3,8 +3,10 @@ module.exports = {
   roots: ["<rootDir>/tests"],
   clearMocks: true,
   collectCoverageFrom: [
-    "autenticacion/**/*.js",
-    "usuario/**/*.js",
+    "*.js",
+    "**/*.js",
     "!**/node_modules/**",
+    "!coverage/**",
+    "!tests/**",
   ],
 };
