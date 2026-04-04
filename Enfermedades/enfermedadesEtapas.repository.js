@@ -279,6 +279,7 @@ module.exports = {
   actualizar_enfermedad_con_etapas,
   eliminar_enfermedad_con_etapas,
   eliminar_etapa_enfermedad,
+  get_enfermedad_con_etapas,
   post_etapa_enfermedad,
   actualizar_etapa_enfermedad,
   actualizar_nombre_enfermedad,

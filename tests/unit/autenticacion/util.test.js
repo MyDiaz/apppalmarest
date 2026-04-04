@@ -1,6 +1,13 @@
 const bcrypt = require("bcryptjs");
 const jsonwebtoken = require("jsonwebtoken");
 const config = require("../../../config");
+
+jest.mock("pg", () => ({
+  Pool: jest.fn(() => ({
+    connect: jest.fn(),
+  })),
+}));
+
 const {
   encriptar_clave,
   generar_token,
