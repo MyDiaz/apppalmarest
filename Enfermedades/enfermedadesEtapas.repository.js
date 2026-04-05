@@ -18,7 +18,7 @@ var get_enfermedades_con_etapas = async () => {
 var post_enfermedad_con_etapas = async (req) => {
   let values = "";
   let numero_etapas = req.body.etapas_enfermedad.length;
-  if (numero_etapas) {
+  if (!numero_etapas) {
     return;
   }
 
@@ -30,8 +30,11 @@ var post_enfermedad_con_etapas = async (req) => {
     })
     .catch((err) => {
       console.log(err);
-    });
+  });
   if (enfermedad.length == 0) {
+    const causas_erradicacion_etapa = (
+      req.body.causa_erradicacion_etapa || []
+    ).map((valor) => valor === true || valor === "true");
     let values = "";
     for (let i = 0; i < numero_etapas; i = i + 1) {
       values =
@@ -41,12 +44,12 @@ var post_enfermedad_con_etapas = async (req) => {
         )}','${nombre_enfermedad_decode}', 
             '${decodeURIComponent(
               req.body.tratamiento_etapa_enfermedad[i]
-            )}'),`;
+            )}', ${causas_erradicacion_etapa[i] === true || false}),`;
     }
     let consulta_enfermedad = `INSERT INTO public."ENFERMEDAD"(nombre_enfermedad) VALUES 
         ('${nombre_enfermedad_decode}');`;
     let consulta_etapas = `INSERT INTO public."ETAPAS_ENFERMEDAD" 
-        (etapa_enfermedad, nombre_enfermedad, tratamiento_etapa_enfermedad)
+        (etapa_enfermedad, nombre_enfermedad, tratamiento_etapa_enfermedad, causa_erradicacion_etapa)
         VALUES ${values}`;
     consulta_etapas = consulta_etapas.slice(0, -1) + ";";
     let consulta = `${consulta_enfermedad} ${consulta_etapas}`;
@@ -55,6 +58,9 @@ var post_enfermedad_con_etapas = async (req) => {
     cliente_bd.release();
     return resp;
   } else if (enfermedad[0].fue_borrado) {
+    const causas_erradicacion_etapa = (
+      req.body.causa_erradicacion_etapa || []
+    ).map((valor) => valor === true || valor === "true");
     for (let i = 0; i < numero_etapas; i = i + 1) {
       values =
         values +
@@ -63,14 +69,15 @@ var post_enfermedad_con_etapas = async (req) => {
         )}','${nombre_enfermedad_decode}', 
             '${decodeURIComponent(
               req.body.tratamiento_etapa_enfermedad[i]
-            )}'),`;
+            )}', ${causas_erradicacion_etapa[i] === true || false}),`;
     }
     let consulta_enfermedad = `UPDATE public."ENFERMEDAD"
         SET fue_borrado = false,
-            procedimiento_tratamiento_enfermedad = NULL
+            procedimiento_tratamiento_enfermedad = NULL,
+            causa_erradicacion_enfermedad = false
         WHERE nombre_enfermedad = ('${nombre_enfermedad_decode}');`;
     let consulta_etapas = `INSERT INTO public."ETAPAS_ENFERMEDAD" 
-        (etapa_enfermedad, nombre_enfermedad, tratamiento_etapa_enfermedad)
+        (etapa_enfermedad, nombre_enfermedad, tratamiento_etapa_enfermedad, causa_erradicacion_etapa)
         VALUES ${values}`;
     consulta_etapas = consulta_etapas.slice(0, -1) + ";";
     let consulta = `${consulta_enfermedad} ${consulta_etapas}`;
@@ -93,14 +100,15 @@ var get_enfermedad_con_etapas = async (nombre_enfermedad) => {
 var post_etapa_enfermedad = async (
   etapa_enfermedad,
   nombre_enfermedad,
-  tratamiento_etapa_enfermedad
+  tratamiento_etapa_enfermedad,
+  causa_erradicacion_etapa
 ) => {
   let consulta = `INSERT INTO public."ETAPAS_ENFERMEDAD"(
-        etapa_enfermedad, nombre_enfermedad, tratamiento_etapa_enfermedad)
+        etapa_enfermedad, nombre_enfermedad, tratamiento_etapa_enfermedad, causa_erradicacion_etapa)
         VALUES ('${decodeURIComponent(etapa_enfermedad)}', 
         '${decodeURIComponent(nombre_enfermedad)}', '${decodeURIComponent(
     tratamiento_etapa_enfermedad
-  )}');`;
+  )}', ${causa_erradicacion_etapa === true || causa_erradicacion_etapa === "true"});`;
   const cliente_bd = await BaseDatos.connect();
   let rta = await cliente_bd.query(consulta);
   cliente_bd.release();
@@ -110,10 +118,12 @@ var post_etapa_enfermedad = async (
 var actualizar_etapa_enfermedad = async (
   id_etapa_enfermedad,
   etapa_enfermedad,
-  tratamiento_etapa_enfermedad
+  tratamiento_etapa_enfermedad,
+  causa_erradicacion_etapa
 ) => {
   let consulta = `UPDATE public."ETAPAS_ENFERMEDAD"
-	SET etapa_enfermedad='${etapa_enfermedad}', tratamiento_etapa_enfermedad='${tratamiento_etapa_enfermedad}'
+	SET etapa_enfermedad='${etapa_enfermedad}', tratamiento_etapa_enfermedad='${tratamiento_etapa_enfermedad}',
+    causa_erradicacion_etapa=${causa_erradicacion_etapa === true || causa_erradicacion_etapa === "true"}
     WHERE id_etapa_enfermedad=${id_etapa_enfermedad};`;
   const cliente_bd = await BaseDatos.connect();
   let rta = await cliente_bd.query(consulta);
@@ -191,6 +201,9 @@ var actualizar_enfermedad_con_etapas = async (req, res) => {
         return decodeURIComponent(tratamiento);
       }
     );
+    let causas_erradicacion_etapa = (req.body.causa_erradicacion_etapa || []).map(
+      (causa) => causa === true || causa === "true"
+    );
     let etapas = req.body.etapas_enfermedad.map((etapa) => {
       return decodeURIComponent(etapa);
     });
@@ -201,7 +214,8 @@ var actualizar_enfermedad_con_etapas = async (req, res) => {
           rta = await post_etapa_enfermedad(
             etapas[i],
             req.params["nombre_enfermedad"],
-            tratamientos[i]
+            tratamientos[i],
+            causas_erradicacion_etapa[i]
           );
           if (!rta) {
             res.status(400).send({
@@ -219,7 +233,8 @@ var actualizar_enfermedad_con_etapas = async (req, res) => {
           rta = await actualizar_etapa_enfermedad(
             ids_nuevos[i],
             etapas[i],
-            tratamientos[i]
+            tratamientos[i],
+            causas_erradicacion_etapa[i]
           );
           if (!rta) {
             res.status(400).send({

@@ -45,6 +45,46 @@ describe("registroEnfermedades repository", () => {
     const result = await get_registro_enfermedades();
 
     expect(result).toBeNull();
+  });
+
+  it("get_estado_fitosanitario_actual returns total palms and active palms", async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ nombre_lote: "Lote A", total_palmas: 3 }] })
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            nombre_lote: "Lote A",
+            id_palma: 10,
+            nombre_enfermedad: "Anillo rojo",
+            etapa_enfermedad: "Etapa 1",
+            fecha: "2026-04-04",
+            estado: "en_tratamiento",
+          },
+        ],
+      });
+
+    const { get_estado_fitosanitario_actual } = require("../../../Enfermedades/registroEnfermedades.repository");
+    const result = await get_estado_fitosanitario_actual();
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`FROM "LOTE"`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`WHERE RE.dada_de_alta IS NOT TRUE`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`NOT EXISTS`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`FROM "ERRADICACION" ER`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`causa_erradicacion_enfermedad`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`causa_erradicacion_etapa`);
+    expect(result).toEqual({
+      total_palms_by_lote: [{ nombre_lote: "Lote A", total_palmas: 3 }],
+      active_palms: [
+        {
+          nombre_lote: "Lote A",
+          id_palma: 10,
+          nombre_enfermedad: "Anillo rojo",
+          etapa_enfermedad: "Etapa 1",
+          fecha: "2026-04-04",
+          estado: "en_tratamiento",
+        },
+      ],
+    });
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 });
