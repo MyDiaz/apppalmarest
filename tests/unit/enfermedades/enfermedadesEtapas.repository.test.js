@@ -1,0 +1,145 @@
+const mockQuery = jest.fn();
+const mockRelease = jest.fn();
+const mockConnect = jest.fn();
+
+jest.mock("pg", () => ({
+  Pool: jest.fn(() => ({
+    connect: mockConnect,
+  })),
+}));
+
+jest.mock("../../../Enfermedades/enfermedades.repository", () => ({
+  get_enfermedad: jest.fn(),
+}));
+
+describe("Enfermedades etapas repository", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockConnect.mockResolvedValue({
+      query: mockQuery,
+      release: mockRelease,
+    });
+  });
+
+  it("get_enfermedades_con_etapas queries joined active rows", async () => {
+    mockQuery.mockResolvedValue({ rows: [{ id_etapa_enfermedad: 1 }] });
+
+    const { get_enfermedades_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const result = await get_enfermedades_con_etapas();
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`select * from "ETAPAS_ENFERMEDAD"`);
+    expect(result).toEqual({ rows: [{ id_etapa_enfermedad: 1 }] });
+    expect(mockRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it("get_enfermedad_con_etapas returns the rows array", async () => {
+    mockQuery.mockResolvedValue({ rows: [{ id_etapa_enfermedad: 7 }] });
+
+    const { get_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const result = await get_enfermedad_con_etapas("Anillo rojo");
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`where nombre_enfermedad = 'Anillo rojo'`);
+    expect(result).toEqual([{ id_etapa_enfermedad: 7 }]);
+  });
+
+  it("post_etapa_enfermedad inserts a stage", async () => {
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+
+    const { post_etapa_enfermedad } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const result = await post_etapa_enfermedad("Etapa 1", "Anillo rojo", "Tratamiento 1");
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`INSERT INTO public."ETAPAS_ENFERMEDAD"`);
+    expect(result).toEqual({ rowCount: 1 });
+  });
+
+  it("actualizar_etapa_enfermedad updates by id", async () => {
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+
+    const { actualizar_etapa_enfermedad } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    await actualizar_etapa_enfermedad(7, "Etapa editada", "Tratamiento editado");
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`WHERE id_etapa_enfermedad=7`);
+    expect(mockRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it("eliminar_etapa_enfermedad soft deletes a stage", async () => {
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+
+    const { eliminar_etapa_enfermedad } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    await eliminar_etapa_enfermedad(9);
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`set fue_borrado = true`);
+    expect(mockQuery.mock.calls[0][0]).toContain(`where id_etapa_enfermedad = '9'`);
+  });
+
+  it("actualizar_nombre_enfermedad updates the disease name", async () => {
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+
+    const { actualizar_nombre_enfermedad } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    await actualizar_nombre_enfermedad("Nuevo nombre", "Viejo nombre");
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`nombre_enfermedad='Nuevo nombre'`);
+    expect(mockQuery.mock.calls[0][0]).toContain(`WHERE nombre_enfermedad='Viejo nombre'`);
+  });
+
+  it("eliminar_enfermedad_con_etapas soft deletes disease and stages", async () => {
+    mockQuery.mockResolvedValue({ rowCount: 2 });
+
+    const { eliminar_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    await eliminar_enfermedad_con_etapas("Anillo rojo");
+
+    expect(mockQuery.mock.calls[0][0]).toContain(`UPDATE public."ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[0][0]).toContain(`UPDATE public."ETAPAS_ENFERMEDAD"`);
+  });
+
+  it("post_enfermedad_con_etapas returns early when stages are present", async () => {
+    const { post_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const result = await post_enfermedad_con_etapas({
+      body: {
+        nombre_enfermedad: encodeURIComponent("Anillo rojo"),
+        etapas_enfermedad: [encodeURIComponent("Etapa 1")],
+        tratamiento_etapa_enfermedad: [encodeURIComponent("Tratamiento 1")],
+      },
+    });
+
+    expect(result).toBeUndefined();
+    expect(mockQuery).not.toHaveBeenCalled();
+  });
+
+  it("actualizar_enfermedad_con_etapas updates, inserts, deletes, and renames stages", async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ id_etapa_enfermedad: 1 }] })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 1 });
+
+    const { actualizar_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    await actualizar_enfermedad_con_etapas(
+      {
+        params: { nombre_enfermedad: "Vieja" },
+        body: {
+          nombre_enfermedad: "Nueva",
+          etapas_enfermedad: [encodeURIComponent("Etapa 1"), encodeURIComponent("Etapa 2")],
+          tratamientos_etapa_enfermedad: [encodeURIComponent("Tratamiento 1"), encodeURIComponent("Tratamiento 2")],
+          ids_etapas_enfermedad: [-1, 2],
+        },
+      },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining("correctamente") })
+    );
+    expect(mockQuery.mock.calls[1][0]).toContain(`INSERT INTO public."ETAPAS_ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[2][0]).toContain(`UPDATE public."ETAPAS_ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[3][0]).toContain(`set fue_borrado = true`);
+    expect(mockQuery.mock.calls[4][0]).toContain(`UPDATE public."ENFERMEDAD"`);
+  });
+});

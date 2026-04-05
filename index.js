@@ -106,7 +106,7 @@ app.use(historiaClinicaPalma);
 app.use(erradicaciones);
 app.use(precipitaciones);
 app.use(censoProductivo);
-app.use(fertilizaciones)
+app.use(fertilizaciones);
 
 // Middleware para prefijo /sigpa/api
 app.use("/sigpa/api", app._router);
@@ -118,12 +118,23 @@ app.use(function (req, res, next) {
   });
 });
 
-app.listen(config.host.port, config.host.hostname, (err) => {
-  if (err) {
-    console.log("El servidor no esta disponible", err);
-    return;
-  }
-  console.log(
-    `El servidor está corriendo en ${config.host.hostname}:${config.host.port}`
-  );
-});
+const startServer = () => {
+  return app.listen(config.host.port, config.host.hostname, (err) => {
+    if (err) {
+      console.log("El servidor no esta disponible", err);
+      return;
+    }
+    console.log(
+      `El servidor está corriendo en ${config.host.hostname}:${config.host.port}`
+    );
+  });
+};
+
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = {
+  app,
+  startServer,
+};

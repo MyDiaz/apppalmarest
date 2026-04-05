@@ -1,98 +1,14 @@
 const express = require("express");
-const config = require('../config');
-const { Pool } = require('pg');
 const rutas = express.Router();
 const { authorize } = require("../autenticacion/util");
-
-const BaseDatos = new Pool(config.connectionData);
-
-
-var get_enfermedades = async() => {
-    let consulta = `SELECT * FROM "ENFERMEDAD" where procedimiento_tratamiento_enfermedad != 'NULL' 
-    and 
-    fue_borrado = false;`;
-    console.log(consulta);
-    const cliente_bd = await BaseDatos.connect();
-    let rta = await cliente_bd.query(consulta);
-    cliente_bd.release();
-    console.log("get_enfermedades", rta);
-    return rta;
-}
-
-var get_enfermedad = async(nombre_enfermedad) => {
-    let consulta = `SELECT * FROM "ENFERMEDAD" where nombre_enfermedad = '${nombre_enfermedad}';`;
-    //console.log(consulta);
-    const cliente_bd = await BaseDatos.connect();
-    let rta = await cliente_bd.query(consulta);
-    cliente_bd.release();
-    return rta.rows;
-}
-
-//query que trae el nombre de la enfermedad y su etapa correspondiente concatenada
-var get_enfermedades_etapa_concat = async(nombre_enfermedad) => {
-    let consulta = `SELECT concat(E.nombre_enfermedad,' ', EE.etapa_enfermedad)
-    FROM "ENFERMEDAD" AS E
-    LEFT JOIN "ETAPAS_ENFERMEDAD" AS EE
-    ON E.nombre_enfermedad = EE.nombre_enfermedad
-    where E.fue_borrado = false;`;
-    //console.log(consulta);
-    const cliente_bd = await BaseDatos.connect();
-    let rta = await cliente_bd.query(consulta);
-    cliente_bd.release();
-    return rta.rows;
-}
-
-//Si ya existio una enfermedad con el nombre que se esta registrado, modificado el fue_borrado a FALSE, de lo contrario hace el insert de la enfermedad
-var post_enfermedad = async(req) => {
-    let enfermedad = await get_enfermedad(decodeURIComponent(req.body.nombre_enfermedad));
-    let consulta;
-    if (enfermedad.length > 0) {
-        if (!enfermedad[0].fue_borrado) {
-            return;
-        }
-        consulta = `UPDATE public."ENFERMEDAD"
-        SET procedimiento_tratamiento_enfermedad='${decodeURIComponent(req.body.procedimiento_tratamiento_enfermedad)}',
-            fue_borrado=false
-        WHERE nombre_enfermedad = '${decodeURIComponent(req.body.nombre_enfermedad)}';`;
-    } else {
-        consulta = `INSERT INTO public."ENFERMEDAD"( nombre_enfermedad,
-        "procedimiento_tratamiento_enfermedad") VALUES 
-        ( '${decodeURIComponent(req.body.nombre_enfermedad)}' , '${decodeURIComponent(req.body.procedimiento_tratamiento_enfermedad)}' );`
-    }
-    
-    const cliente_bd = await BaseDatos.connect();
-    let rta = await cliente_bd.query(consulta);
-    cliente_bd.release();
-    return rta;
-}
-
-//req.params.nombre_enfermedad
-var put_enfermedad = async(req) => {
-    let consulta = `UPDATE public."ENFERMEDAD"
-    SET nombre_enfermedad='${decodeURIComponent(req.body.nombre_enfermedad)}', procedimiento_tratamiento_enfermedad=
-    '${decodeURIComponent(req.body.procedimiento_tratamiento_enfermedad)}'
-    WHERE nombre_enfermedad = '${decodeURIComponent(req.params.nombre_enfermedad)}';`;
-    console.log(consulta);
-    const cliente_bd = await BaseDatos.connect();
-    let rta = await cliente_bd.query(consulta);
-    cliente_bd.release();
-    return true;
-}
-
-//Borra logicamente (setea fue_borrado a TRUE) una enfermedad y todas las etapas asociadas a una enfermedad
-var eliminar_enfermedad = async(nombre_enfermedad) => {
-    let consulta = `UPDATE public."ENFERMEDAD"
-    SET fue_borrado = true
-    WHERE nombre_enfermedad='${nombre_enfermedad}';
-    UPDATE public."ETAPAS_ENFERMEDAD"
-    SET fue_borrado = true
-    WHERE nombre_enfermedad='${nombre_enfermedad}';`;
-    console.log(consulta);
-    const cliente_bd = await BaseDatos.connect();
-    let rta = await cliente_bd.query(consulta);
-    cliente_bd.release();
-    return rta;
-}
+const {
+  get_enfermedades,
+  get_enfermedad,
+  get_enfermedades_etapa_concat,
+  post_enfermedad,
+  put_enfermedad,
+  eliminar_enfermedad,
+} = require("./enfermedades.repository");
 
 //Retorna el listado de todas las enfermedades que no tienen etapas
 rutas.route('/enfermedades')
