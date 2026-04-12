@@ -4,14 +4,13 @@ const get_usuario = require("../autenticacion/util").get_usuario;
 const encriptar_clave = require("../autenticacion/util").encriptar_clave;
 const { authorize } = require("../autenticacion/util");
 const bcrypt = require("bcryptjs");
-const { Pool } = require("pg");
 const rutas = express.Router();
 const {
   scapePostgreSQL,
   validarContrasena,
 } = require("./usuario.helpers");
 
-const BaseDatos = new Pool(config.connectionData);
+const BaseDatos = require("../db");
 
 var obtenerUsuarios = async () => {
   let consulta = `SELECT cc_usuario, nombre_usuario, cargo_empresa,rol, validado FROM public."USUARIO";`;
