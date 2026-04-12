@@ -77,7 +77,7 @@ describe("PUT /self/password", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toContain("no es correca");
+    expect(response.body.message).toContain("no es correcta");
     expect(mockQuery).not.toHaveBeenCalled();
   });
 

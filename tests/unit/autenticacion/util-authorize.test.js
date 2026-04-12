@@ -5,7 +5,16 @@ const mockQuery = jest.fn();
 const mockRelease = jest.fn();
 const mockConnect = jest.fn();
 const mockPassportUse = jest.fn();
-const mockPassportAuthorize = jest.fn(() => (req, res, next) => next());
+const mockPassportAuthorize = jest.fn(
+  () => (req, res, next) => {
+    req.account = {
+      cc_usuario: "123",
+      rol_usuario: "user",
+      sub: { cc_usuario: "123" },
+    };
+    next();
+  }
+);
 
 jest.mock("passport", () => ({
   use: (...args) => mockPassportUse(...args),
@@ -152,5 +161,35 @@ describe("autenticacion/util authorize and test routes", () => {
     expect(response.status).toBe(200);
     expect(response.body.message).toEqual(expect.any(String));
     expect(response.body.message).not.toBe("ClaveSegura#2026");
+  });
+
+  it("returns 400 when the encryption payload is missing", async () => {
+    const app = express();
+    app.use(express.json());
+    app.use(rutas);
+
+    const response = await request(app).post("/test/encriptar").send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("contrasenia");
+  });
+
+  it("exposes the authorize test routes", async () => {
+    mockQuery.mockResolvedValue({ rows: [{ rol: "user" }] });
+
+    const app = express();
+    app.use(express.json());
+    app.use(rutas);
+
+    const userResponse = await request(app).get("/test/authorize/user");
+    const anyResponse = await request(app).get("/test/authorize");
+    const adminResponse = await request(app).get("/test/authorize/admin");
+    const mixedResponse = await request(app).get("/test/authorize/admin/user");
+
+    expect(userResponse.status).toBe(200);
+    expect(userResponse.body.cc_usuario).toBe("123");
+    expect(anyResponse.status).toBe(200);
+    expect(adminResponse.status).toBe(403);
+    expect(mixedResponse.status).toBe(200);
   });
 });

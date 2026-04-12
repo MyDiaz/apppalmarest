@@ -111,6 +111,96 @@ describe("usuario routes", () => {
     expect(response.body.message).toContain("Algo inesperado");
   });
 
+  it("PUT /usuarios/:cc_usuario updates the editable fields", async () => {
+    mockGetUsuario.mockResolvedValue({
+      cc_usuario: "123",
+      nombre_usuario: "Ana",
+      cargo_empresa: "Supervisor",
+      telefono: "3000000",
+      correo: "ana@example.com",
+      rol: "admin",
+      validado: true,
+    });
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+
+    const response = await request(buildApp()).put("/usuarios/123").send({
+      cc_usuario: "321",
+      nombre_usuario: "Ana Perez",
+      contrasena_usuario: encodeURIComponent("ClaveSegura#2026"),
+      rol: "user",
+      cargo_empresa: "Gerente",
+      telefono: encodeURIComponent("3100000"),
+      correo: "ana.perez@example.com",
+      validado: false,
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toContain("guard");
+  });
+
+  it("PUT /usuarios/:cc_usuario returns 400 when the lookup fails", async () => {
+    mockGetUsuario.mockResolvedValue(null);
+
+    const response = await request(buildApp()).put("/usuarios/123").send({
+      cc_usuario: "321",
+      nombre_usuario: "Ana Perez",
+      rol: "user",
+      cargo_empresa: "Gerente",
+      telefono: encodeURIComponent("3100000"),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("información");
+  });
+
+  it("PUT /usuarios/:cc_usuario returns 400 when the update helper fails", async () => {
+    mockGetUsuario.mockResolvedValue({
+      cc_usuario: "123",
+      nombre_usuario: "Ana",
+      cargo_empresa: "Supervisor",
+      telefono: "3000000",
+      correo: "ana@example.com",
+      rol: "admin",
+      validado: true,
+    });
+    mockQuery.mockResolvedValue(null);
+
+    const response = await request(buildApp()).put("/usuarios/123").send({
+      cc_usuario: "321",
+      nombre_usuario: "Ana Perez",
+      rol: "user",
+      cargo_empresa: "Gerente",
+      telefono: encodeURIComponent("3100000"),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("actualizar");
+  });
+
+  it("PUT /usuarios/:cc_usuario returns 400 when the update throws", async () => {
+    mockGetUsuario.mockResolvedValue({
+      cc_usuario: "123",
+      nombre_usuario: "Ana",
+      cargo_empresa: "Supervisor",
+      telefono: "3000000",
+      correo: "ana@example.com",
+      rol: "admin",
+      validado: true,
+    });
+    mockQuery.mockRejectedValue(new Error("boom"));
+
+    const response = await request(buildApp()).put("/usuarios/123").send({
+      cc_usuario: "321",
+      nombre_usuario: "Ana Perez",
+      rol: "user",
+      cargo_empresa: "Gerente",
+      telefono: encodeURIComponent("3100000"),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("Error al actualizar usuario");
+  });
+
   it("PUT /self/profile rejects missing fields", async () => {
     const response = await request(buildApp()).put("/self/profile").send({
       nombre_usuario: "",
@@ -120,6 +210,27 @@ describe("usuario routes", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.message).toContain("nombre");
+  });
+
+  it("PUT /self/profile rejects a missing phone", async () => {
+    const response = await request(buildApp()).put("/self/profile").send({
+      nombre_usuario: "Ana Perez",
+      telefono: "",
+      correo: "ana@example.com",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("tel");
+  });
+
+  it("PUT /self/profile rejects a missing email", async () => {
+    const response = await request(buildApp()).put("/self/profile").send({
+      nombre_usuario: "Ana Perez",
+      telefono: encodeURIComponent("3000000"),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("correo");
   });
 
   it("PUT /self/profile returns 200 when the profile is updated", async () => {
@@ -228,7 +339,7 @@ describe("usuario routes", () => {
     });
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toContain("correca");
+    expect(response.body.message).toContain("correcta");
   });
 
   it("PUT /self/password returns 400 when the user is missing", async () => {

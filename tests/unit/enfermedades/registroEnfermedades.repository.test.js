@@ -37,4 +37,14 @@ describe("registroEnfermedades repository", () => {
     expect(result).toEqual({ rows: [{ id: 1 }] });
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
+
+  it("get_registro_enfermedades releases the client even when the query returns nothing", async () => {
+    mockQuery.mockResolvedValue(null);
+
+    const { get_registro_enfermedades } = require("../../../Enfermedades/registroEnfermedades.repository");
+    const result = await get_registro_enfermedades();
+
+    expect(result).toBeNull();
+    expect(mockRelease).toHaveBeenCalledTimes(1);
+  });
 });
