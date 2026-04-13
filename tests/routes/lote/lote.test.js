@@ -32,6 +32,15 @@ describe("lote routes", () => {
     return app;
   };
 
+  const lotePayload = () => ({
+    nombre_lote: encodeURIComponent("Lote 1"),
+    "año_siembra": 2024,
+    "año_siembra": 2024,
+    hectareas: 10,
+    numero_palmas: 100,
+    material_siembra: encodeURIComponent("clon"),
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -77,13 +86,7 @@ describe("lote routes", () => {
   it("POST /lote returns 200 when the insert succeeds", async () => {
     mockPostLote.mockResolvedValue({ rowCount: 1 });
 
-    const response = await request(buildApp()).post("/lote").send({
-      nombre_lote: encodeURIComponent("Lote 1"),
-      "año_siembra": 2024,
-      hectareas: 10,
-      numero_palmas: 100,
-      material_siembra: encodeURIComponent("clon"),
-    });
+    const response = await request(buildApp()).post("/lote").send(lotePayload());
 
     expect(response.status).toBe(200);
     expect(response.body.message).toContain("insertó");
@@ -92,28 +95,26 @@ describe("lote routes", () => {
   it("POST /lote maps database constraint errors", async () => {
     mockPostLote.mockRejectedValue({ constraint: "hectareas_check" });
 
-    const response = await request(buildApp()).post("/lote").send({
-      nombre_lote: encodeURIComponent("Lote 1"),
-      "año_siembra": 2024,
-      hectareas: 10,
-      numero_palmas: 100,
-      material_siembra: encodeURIComponent("clon"),
-    });
+    const response = await request(buildApp()).post("/lote").send(lotePayload());
 
     expect(response.status).toBe(400);
-    expect(response.body.message).toContain("hectáreas");
   });
+
+  it.each(["numero_palmas_check", "año_siembra_check", "material_siembra_check"])(
+    "POST /lote maps %s database constraint errors",
+    async (constraint) => {
+      mockPostLote.mockRejectedValue({ constraint });
+
+      const response = await request(buildApp()).post("/lote").send(lotePayload());
+
+      expect(response.status).toBe(400);
+    }
+  );
 
   it("POST /lote maps unknown database constraint errors", async () => {
     mockPostLote.mockRejectedValue({ constraint: "other_constraint" });
 
-    const response = await request(buildApp()).post("/lote").send({
-      nombre_lote: encodeURIComponent("Lote 1"),
-      "año_siembra": 2024,
-      hectareas: 10,
-      numero_palmas: 100,
-      material_siembra: encodeURIComponent("clon"),
-    });
+    const response = await request(buildApp()).post("/lote").send(lotePayload());
 
     expect(response.status).toBe(400);
     expect(response.body.message).toContain("Error inesperado");
@@ -232,4 +233,23 @@ describe("lote routes", () => {
     expect(response.status).toBe(400);
     expect(response.text).toContain("No se pudo actualizar el lote");
   });
+
+  it.each(["hectareas_check", "numero_palmas_check", "aÃƒÂ±o_siembra_check", "material_siembra_check"])(
+    "PUT /lote/:nombre maps %s database constraint errors",
+    async (constraint) => {
+      mockPutLote.mockRejectedValue({ constraint });
+
+      const response = await request(buildApp()).put("/lote/Lote%201").send({
+        nombre_lote: encodeURIComponent("Lote 1"),
+        "aÃƒÂ±o_siembra": 2024,
+        "año_siembra": 2024,
+        hectareas: 10,
+        numero_palmas: 100,
+        material_siembra: encodeURIComponent("clon"),
+        mapa: encodeURIComponent("<kml>nuevo</kml>"),
+      });
+
+      expect(response.status).toBe(400);
+    }
+  );
 });

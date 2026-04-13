@@ -82,6 +82,15 @@ describe("enfermedades routes", () => {
     expect(response.body.message).toContain("enfermedad");
   });
 
+  it("GET /enfermedad/:nombre_enfermedad returns 500 when the repository throws", async () => {
+    mockGetEnfermedad.mockRejectedValue(new Error("boom"));
+
+    const response = await request(buildApp()).get("/enfermedad/Pudrición de Cogollo");
+
+    expect(response.status).toBe(500);
+    expect(response.body.message).toContain("Algo inesperado");
+  });
+
   it("POST /enfermedades returns 200 when insertion succeeds", async () => {
     mockPostEnfermedad.mockResolvedValue({ rowCount: 1 });
 
@@ -113,6 +122,48 @@ describe("enfermedades routes", () => {
       nombre_enfermedad: encodeURIComponent("Pudrición de Cogollo"),
       procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
     });
+
+    expect(response.status).toBe(500);
+    expect(response.body.message).toContain("Algo inesperado");
+  });
+
+  it("PUT /enfermedad/:nombre_enfermedad returns 400 when update returns nothing", async () => {
+    mockPutEnfermedad.mockResolvedValue(null);
+
+    const response = await request(buildApp()).put("/enfermedad/Pudrición de Cogollo").send({
+      nombre_enfermedad: encodeURIComponent("Nueva enfermedad"),
+      procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("editar");
+  });
+
+  it("PUT /enfermedad/:nombre_enfermedad returns 500 when update throws", async () => {
+    mockPutEnfermedad.mockRejectedValue(new Error("boom"));
+
+    const response = await request(buildApp()).put("/enfermedad/Pudrición de Cogollo").send({
+      nombre_enfermedad: encodeURIComponent("Nueva enfermedad"),
+      procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body.message).toContain("Algo inesperado");
+  });
+
+  it("DELETE /enfermedad/:nombre_enfermedad returns 400 when delete returns nothing", async () => {
+    mockDeleteEnfermedad.mockResolvedValue(null);
+
+    const response = await request(buildApp()).delete("/enfermedad/Pudrición de Cogollo");
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("eliminar");
+  });
+
+  it("DELETE /enfermedad/:nombre_enfermedad returns 500 when delete throws", async () => {
+    mockDeleteEnfermedad.mockRejectedValue(new Error("boom"));
+
+    const response = await request(buildApp()).delete("/enfermedad/Pudrición de Cogollo");
 
     expect(response.status).toBe(500);
     expect(response.body.message).toContain("Algo inesperado");

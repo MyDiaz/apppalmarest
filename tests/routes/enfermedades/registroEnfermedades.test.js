@@ -47,4 +47,22 @@ describe("registroEnfermedades routes", () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual([{ id: 1 }]);
   });
+
+  it("GET /registro-enfermedades returns 400 when the repository returns nothing", async () => {
+    mockGetRegistros.mockResolvedValue(null);
+
+    const response = await request(buildApp()).get("/registro-enfermedades");
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("listado");
+  });
+
+  it("GET /registro-enfermedades/imagenes/:id returns 400 when the repository throws", async () => {
+    mockGetImagenes.mockRejectedValue(new Error("boom"));
+
+    const response = await request(buildApp()).get("/registro-enfermedades/imagenes/1");
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toContain("Algo inesperado");
+  });
 });

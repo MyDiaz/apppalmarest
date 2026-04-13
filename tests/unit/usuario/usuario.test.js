@@ -22,5 +22,19 @@ describe("usuario helpers", () => {
         "O\\'Reilly\\\\100\\%\\n"
       );
     });
+
+    it.each([
+      ["\0", "\\0"],
+      ["\b", "\\b"],
+      ["\t", "\\t"],
+      ["\x1a", "\\z"],
+      ["\r", "\\r"],
+      ['"', '\\"'],
+      ["'", "\\'"],
+      ["\\", "\\\\"],
+      ["%", "\\%"],
+    ])("escapes %p as %p", (input, expected) => {
+      expect(scapePostgreSQL(input)).toBe(expected);
+    });
   });
 });

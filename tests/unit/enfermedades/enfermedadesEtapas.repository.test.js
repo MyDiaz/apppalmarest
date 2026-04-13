@@ -106,6 +106,59 @@ describe("Enfermedades etapas repository", () => {
     expect(mockQuery).not.toHaveBeenCalled();
   });
 
+  it("post_enfermedad_con_etapas inserts a new disease when there are no stages", async () => {
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+    const { get_enfermedad } = require("../../../Enfermedades/enfermedades.repository");
+    get_enfermedad.mockResolvedValue([]);
+
+    const { post_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const result = await post_enfermedad_con_etapas({
+      body: {
+        nombre_enfermedad: encodeURIComponent("Anillo rojo"),
+        etapas_enfermedad: [],
+        tratamiento_etapa_enfermedad: [],
+      },
+    });
+
+    expect(result).toEqual({ rowCount: 1 });
+    expect(mockQuery.mock.calls[0][0]).toContain(`INSERT INTO public."ENFERMEDAD"`);
+  });
+
+  it("post_enfermedad_con_etapas reactivates a deleted disease", async () => {
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+    const { get_enfermedad } = require("../../../Enfermedades/enfermedades.repository");
+    get_enfermedad.mockResolvedValue([{ fue_borrado: true }]);
+
+    const { post_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const result = await post_enfermedad_con_etapas({
+      body: {
+        nombre_enfermedad: encodeURIComponent("Anillo rojo"),
+        etapas_enfermedad: [],
+        tratamiento_etapa_enfermedad: [],
+      },
+    });
+
+    expect(result).toEqual({ rowCount: 1 });
+    expect(mockQuery.mock.calls[0][0]).toContain(`SET fue_borrado = false`);
+  });
+
+  it("post_enfermedad_con_etapas returns undefined when the disease already exists and is active", async () => {
+    const { get_enfermedad } = require("../../../Enfermedades/enfermedades.repository");
+    get_enfermedad.mockResolvedValue([{ fue_borrado: false }]);
+
+    const { post_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const result = await post_enfermedad_con_etapas({
+      body: {
+        nombre_enfermedad: encodeURIComponent("Anillo rojo"),
+        etapas_enfermedad: [],
+        tratamiento_etapa_enfermedad: [],
+      },
+    });
+
+    expect(result).toBeUndefined();
+    expect(mockQuery).not.toHaveBeenCalled();
+  });
+
   it("actualizar_enfermedad_con_etapas updates, inserts, deletes, and renames stages", async () => {
     mockQuery
       .mockResolvedValueOnce({ rows: [{ id_etapa_enfermedad: 1 }] })
@@ -141,5 +194,64 @@ describe("Enfermedades etapas repository", () => {
     expect(mockQuery.mock.calls[2][0]).toContain(`UPDATE public."ETAPAS_ENFERMEDAD"`);
     expect(mockQuery.mock.calls[3][0]).toContain(`set fue_borrado = true`);
     expect(mockQuery.mock.calls[4][0]).toContain(`UPDATE public."ENFERMEDAD"`);
+  });
+
+  it("actualizar_enfermedad_con_etapas rejects incomplete data", async () => {
+    const { actualizar_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    await actualizar_enfermedad_con_etapas(
+      {
+        params: {},
+        body: {
+          nombre_enfermedad: "",
+          etapas_enfermedad: [""],
+          tratamientos_etapa_enfermedad: [],
+          ids_etapas_enfermedad: [],
+        },
+      },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining("campos") })
+    );
+  });
+
+  it("actualizar_enfermedad_con_etapas skips renaming when the name is unchanged", async () => {
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ id_etapa_enfermedad: 1 }] })
+      .mockResolvedValueOnce({ rowCount: 1 })
+      .mockResolvedValueOnce({ rowCount: 1 });
+
+    const { actualizar_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    await actualizar_enfermedad_con_etapas(
+      {
+        params: { nombre_enfermedad: "Vieja" },
+        body: {
+          nombre_enfermedad: "Vieja",
+          etapas_enfermedad: [encodeURIComponent("Etapa 1")],
+          tratamientos_etapa_enfermedad: [encodeURIComponent("Tratamiento 1")],
+          ids_etapas_enfermedad: [1],
+        },
+      },
+      res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(
+      mockQuery.mock.calls.some((call) =>
+        String(call[0]).includes(`UPDATE public."ENFERMEDAD"`)
+      )
+    ).toBe(false);
   });
 });
