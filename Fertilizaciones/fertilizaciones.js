@@ -1,10 +1,9 @@
 const express = require("express");
 const config = require('../config');
-const { Pool } = require('pg');
 const rutas = express.Router();
 const { authorize } = require("../autenticacion/util");
 
-const BaseDatos = new Pool(config.connectionData);
+const BaseDatos = require("../db");
 
 //retorna todas las fertilizaciones activas y finalizadas de la plantación 
 var get_fertilizaciones = async() => {

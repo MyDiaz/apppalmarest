@@ -1,10 +1,9 @@
 const express = require("express");
 const config = require('../config');
-const { Pool } = require('pg');
 const rutas = express.Router();
 const { authorize } = require("../autenticacion/util");
 
-const BaseDatos = new Pool(config.connectionData);
+const BaseDatos = require("../db");
 
 //retorna el registro de la cantidad de palmas podadas de cada poda
 var get_podas = async() => {

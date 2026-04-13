@@ -1,10 +1,9 @@
 const express = require("express");
 const config = require("../config");
-const { Pool } = require("pg");
 const rutas = express.Router();
 const { authorize } = require("../autenticacion/util");
 
-const BaseDatos = new Pool(config.connectionData);
+const BaseDatos = require("../db");
 
 //obtiene las plagas con sus respectivas etaspas que no han sido sometidas al borrado lógico.
 var get_plagas = async () => {
