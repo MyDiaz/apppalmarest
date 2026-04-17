@@ -108,8 +108,8 @@ app.use(precipitaciones);
 app.use(censoProductivo);
 app.use(fertilizaciones);
 
-// Middleware para prefijo /sigpa/api
-app.use("/sigpa/api", app._router);
+// Middleware para prefijo configurable
+app.use(config.host.api_prefix, app._router);
 app.use(function (req, res, next) {
   res.status(404).send({
     error: true,
