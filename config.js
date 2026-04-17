@@ -1,12 +1,14 @@
 const fs = require("fs");
 const config = {};
 
+const envOrDefault = (name, defaultValue) => process.env[name] ?? defaultValue;
+
 config.connectionData = {
-  user: "neondb_owner",
-  host: "ep-lucky-firefly-aepa9miq-pooler.c-2.us-east-2.aws.neon.tech",
-  database: "neondb",
-  password: "npg_EHzFN8Y5WpRB",
-  port: 5432,
+  user: envOrDefault("DB_USER", "postgres"),
+  host: envOrDefault("DB_HOST", "localhost"),
+  database: envOrDefault("DB_NAME", "SIGPA"),
+  password: envOrDefault("DB_PASSWORD", ""),
+  port: Number(envOrDefault("DB_PORT", 5432)),
   ssl: {
     rejectUnauthorized: false, // Requerido para sslmode=require
   },
@@ -15,6 +17,7 @@ config.connectionData = {
 config.host = {
   hostname: "0.0.0.0",
   port: "3000",
+  api_prefix: envOrDefault("API_PREFIX", "/api"),
 };
 
 config.auth = {
