@@ -16,7 +16,7 @@ config.connectionData = {
 
 config.host = {
   hostname: "0.0.0.0",
-  port: "3000",
+  port: Number(envOrDefault("PORT", 3000)),
   api_prefix: envOrDefault("API_PREFIX", "/api"),
 };
 

@@ -109,6 +109,10 @@ app.use(censoProductivo);
 app.use(fertilizaciones);
 
 // Middleware para prefijo configurable
+app.get("/ping", (req, res) => {
+  res.send("pong");
+});
+
 app.use(config.host.api_prefix, app._router);
 app.use(function (req, res, next) {
   res.status(404).send({
