@@ -2,6 +2,11 @@ const fs = require("fs");
 const config = {};
 
 const envOrDefault = (name, defaultValue) => process.env[name] ?? defaultValue;
+const envToBool = (name, defaultValue = false) => {
+  const value = process.env[name];
+  if (value == null) return defaultValue;
+  return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+};
 
 config.connectionData = {
   user: envOrDefault("DB_USER", "postgres"),
@@ -9,9 +14,11 @@ config.connectionData = {
   database: envOrDefault("DB_NAME", "SIGPA"),
   password: envOrDefault("DB_PASSWORD", ""),
   port: Number(envOrDefault("DB_PORT", 5432)),
-  ssl: {
-    rejectUnauthorized: false, // Requerido para sslmode=require
-  },
+  ssl: envToBool("DB_SSL", false)
+    ? {
+        rejectUnauthorized: false,
+      }
+    : false,
 };
 
 config.host = {

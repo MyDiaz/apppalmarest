@@ -22,9 +22,7 @@ describe("config connection data", () => {
       database: "custom_db",
       password: "custom_password",
       port: 6543,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl: false,
     });
     expect(config.host.api_prefix).toBe("/custom/api");
   });
@@ -45,10 +43,18 @@ describe("config connection data", () => {
       database: "SIGPA",
       password: "",
       port: 5432,
-      ssl: {
-        rejectUnauthorized: false,
-      },
+      ssl: false,
     });
     expect(config.host.api_prefix).toBe("/api");
+  });
+
+  it("enables ssl when DB_SSL is set", () => {
+    process.env.DB_SSL = "true";
+
+    const config = require("../../config");
+
+    expect(config.connectionData.ssl).toEqual({
+      rejectUnauthorized: false,
+    });
   });
 });
