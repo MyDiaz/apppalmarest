@@ -36,7 +36,7 @@ rutas.route('/enfermedades')
                 if (!rta) {
                     res.status(400).send({ message: 'No se pudo insertar la enfermedad' });
                 } else {
-                    res.status(200).send({ message: 'Se agregé correctamente' });
+                    res.status(200).send({ message: 'Se agregó correctamente' });
                 }
             }).catch(err => {
                 console.log(err);

@@ -18,6 +18,8 @@ ENV DB_NAME="SIGPA3"
 ENV DB_PASSWORD=""
 ENV DB_PORT=5432
 ENV DB_SSL=false
+ENV DB_SSL=false
+ENV API_PREFIX="/sigpa/api"
 
 # Expón el puerto que usa tu app (por ejemplo, 3000)
 EXPOSE 3000

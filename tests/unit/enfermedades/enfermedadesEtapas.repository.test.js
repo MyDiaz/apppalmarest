@@ -1,6 +1,7 @@
 const mockQuery = jest.fn();
 const mockRelease = jest.fn();
 const mockConnect = jest.fn();
+const mockGetEnfermedad = jest.fn();
 
 jest.mock("pg", () => ({
   Pool: jest.fn(() => ({
@@ -9,7 +10,7 @@ jest.mock("pg", () => ({
 }));
 
 jest.mock("../../../Enfermedades/enfermedades.repository", () => ({
-  get_enfermedad: jest.fn(),
+  get_enfermedad: mockGetEnfermedad,
 }));
 
 describe("Enfermedades etapas repository", () => {
@@ -46,9 +47,10 @@ describe("Enfermedades etapas repository", () => {
     mockQuery.mockResolvedValue({ rowCount: 1 });
 
     const { post_etapa_enfermedad } = require("../../../Enfermedades/enfermedadesEtapas.repository");
-    const result = await post_etapa_enfermedad("Etapa 1", "Anillo rojo", "Tratamiento 1");
+    const result = await post_etapa_enfermedad("Etapa 1", "Anillo rojo", "Tratamiento 1", true);
 
     expect(mockQuery.mock.calls[0][0]).toContain(`INSERT INTO public."ETAPAS_ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[0][0]).toContain(`causa_erradicacion_etapa`);
     expect(result).toEqual({ rowCount: 1 });
   });
 
@@ -56,9 +58,10 @@ describe("Enfermedades etapas repository", () => {
     mockQuery.mockResolvedValue({ rowCount: 1 });
 
     const { actualizar_etapa_enfermedad } = require("../../../Enfermedades/enfermedadesEtapas.repository");
-    await actualizar_etapa_enfermedad(7, "Etapa editada", "Tratamiento editado");
+    await actualizar_etapa_enfermedad(7, "Etapa editada", "Tratamiento editado", false);
 
     expect(mockQuery.mock.calls[0][0]).toContain(`WHERE id_etapa_enfermedad=7`);
+    expect(mockQuery.mock.calls[0][0]).toContain(`causa_erradicacion_etapa=false`);
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 
@@ -92,18 +95,24 @@ describe("Enfermedades etapas repository", () => {
     expect(mockQuery.mock.calls[0][0]).toContain(`UPDATE public."ETAPAS_ENFERMEDAD"`);
   });
 
-  it("post_enfermedad_con_etapas returns early when stages are present", async () => {
+  it("post_enfermedad_con_etapas inserts the disease and its stages", async () => {
+    mockGetEnfermedad.mockResolvedValue([]);
+    mockQuery.mockResolvedValue({ rowCount: 1 });
+
     const { post_enfermedad_con_etapas } = require("../../../Enfermedades/enfermedadesEtapas.repository");
     const result = await post_enfermedad_con_etapas({
       body: {
         nombre_enfermedad: encodeURIComponent("Anillo rojo"),
         etapas_enfermedad: [encodeURIComponent("Etapa 1")],
         tratamiento_etapa_enfermedad: [encodeURIComponent("Tratamiento 1")],
+        causa_erradicacion_etapa: [true],
       },
     });
 
-    expect(result).toBeUndefined();
-    expect(mockQuery).not.toHaveBeenCalled();
+    expect(mockQuery.mock.calls[0][0]).toContain(`INSERT INTO public."ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[0][0]).toContain(`INSERT INTO public."ETAPAS_ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[0][0]).toContain(`causa_erradicacion_etapa`);
+    expect(result).toEqual({ rowCount: 1 });
   });
 
   it("post_enfermedad_con_etapas inserts a new disease when there are no stages", async () => {
@@ -181,6 +190,7 @@ describe("Enfermedades etapas repository", () => {
           etapas_enfermedad: [encodeURIComponent("Etapa 1"), encodeURIComponent("Etapa 2")],
           tratamientos_etapa_enfermedad: [encodeURIComponent("Tratamiento 1"), encodeURIComponent("Tratamiento 2")],
           ids_etapas_enfermedad: [-1, 2],
+          causa_erradicacion_etapa: [true, false],
         },
       },
       res

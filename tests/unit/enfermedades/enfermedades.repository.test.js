@@ -82,11 +82,14 @@ describe("Enfermedades repository", () => {
       body: {
         nombre_enfermedad: encodeURIComponent("Rojas"),
         procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+        causa_erradicacion_enfermedad: true,
       },
     });
 
     expect(mockQuery).toHaveBeenCalledTimes(2);
     expect(mockQuery.mock.calls[1][0]).toContain(`INSERT INTO public."ENFERMEDAD"`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`causa_erradicacion_enfermedad) VALUES`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`, true );`);
     expect(result).toEqual({ rowCount: 1 });
   });
 
@@ -100,10 +103,12 @@ describe("Enfermedades repository", () => {
       body: {
         nombre_enfermedad: encodeURIComponent("Rojas"),
         procedimiento_tratamiento_enfermedad: encodeURIComponent("Tratamiento"),
+        causa_erradicacion_enfermedad: false,
       },
     });
 
     expect(mockQuery.mock.calls[1][0]).toContain(`SET procedimiento_tratamiento_enfermedad='Tratamiento'`);
+    expect(mockQuery.mock.calls[1][0]).toContain(`causa_erradicacion_enfermedad=false`);
     expect(mockQuery.mock.calls[1][0]).toContain(`fue_borrado=false`);
     expect(result).toEqual({ rowCount: 1 });
   });
@@ -134,10 +139,12 @@ describe("Enfermedades repository", () => {
       body: {
         nombre_enfermedad: "Nueva",
         procedimiento_tratamiento_enfermedad: "Tratamiento nuevo",
+        causa_erradicacion_enfermedad: false,
       },
     });
 
     expect(mockQuery.mock.calls[0][0]).toContain(`nombre_enfermedad='Nueva'`);
+    expect(mockQuery.mock.calls[0][0]).toContain(`causa_erradicacion_enfermedad=false`);
     expect(result).toBe(true);
   });
 });

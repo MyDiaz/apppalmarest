@@ -52,7 +52,7 @@ rutas.route('/fertilizaciones')
         )
     })
 
-rutas.route('/fertilizacion/:id_fertilizacion')
+rutas.route('/fertilizaciones/:id_fertilizacion')
     .get(authorize(["admin", "user"]), (req, res) => {
         get_fertilizacion(req.params.id_fertilizacion).then(rta => {
             if (!rta) {
