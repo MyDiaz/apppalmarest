@@ -234,14 +234,13 @@ describe("lote routes", () => {
     expect(response.text).toContain("No se pudo actualizar el lote");
   });
 
-  it.each(["hectareas_check", "numero_palmas_check", "aÃƒÂ±o_siembra_check", "material_siembra_check"])(
+  it.each(["hectareas_check", "numero_palmas_check", "año_siembra_check", "material_siembra_check"])(
     "PUT /lote/:nombre maps %s database constraint errors",
     async (constraint) => {
       mockPutLote.mockRejectedValue({ constraint });
 
       const response = await request(buildApp()).put("/lote/Lote%201").send({
         nombre_lote: encodeURIComponent("Lote 1"),
-        "aÃƒÂ±o_siembra": 2024,
         "año_siembra": 2024,
         hectareas: 10,
         numero_palmas: 100,

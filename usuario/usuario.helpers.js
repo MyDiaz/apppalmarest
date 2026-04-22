@@ -29,7 +29,7 @@ const passwordRegex =
 
 const validarContrasena = (contrasena) => {
   if (!passwordRegex.test(contrasena)) {
-    return "La contraseÃ±a debe tener mÃ­nimo 8 caracteres, una mayÃºscula, una minÃºscula, un nÃºmero y un carÃ¡cter especial";
+    return "La contraseña debe tener mí­nimo 8 caracteres, una mayúscula, una minúscula, un número y un caracter especial";
   }
 };
 

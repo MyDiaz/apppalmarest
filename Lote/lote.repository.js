@@ -11,9 +11,9 @@ var get_lotes = async () => {
 };
 
 var post_lote = async (req) => {
-  let consulta = `INSERT INTO public."LOTE"("aÃ±o_siembra", hectareas, nombre_lote, 
+  let consulta = `INSERT INTO public."LOTE"("año_siembra", hectareas, nombre_lote, 
     numero_palmas, material_siembra) VALUES 
-    (${req.body["aÃ±o_siembra"]}, 
+    (${req.body["año_siembra"]}, 
     ${req.body.hectareas}, 
     '${decodeURIComponent(req.body.nombre_lote)}', 
     ${req.body.numero_palmas},
@@ -69,7 +69,7 @@ var soft_delete_lote = async (nombre_lote) => {
 
 var put_lote = async (req) => {
   let consulta = `UPDATE "LOTE" SET 
-    aÃ±o_siembra= $1, 
+    año_siembra= $1, 
     hectareas= $2, 
     nombre_lote = $3, 
     numero_palmas= $4, 
@@ -78,7 +78,7 @@ var put_lote = async (req) => {
     WHERE nombre_lote = '${req.params.nombre}';`;
   const cliente_bd = await BaseDatos.connect();
   let rta = await cliente_bd.query(consulta, [
-    req.body["aÃ±o_siembra"],
+    req.body["año_siembra"],
     req.body.hectareas,
     decodeURIComponent(req.body.nombre_lote),
     req.body.numero_palmas,
