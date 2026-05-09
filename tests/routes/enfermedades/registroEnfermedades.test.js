@@ -5,6 +5,8 @@ const mockAuthorize = jest.fn(() => (req, res, next) => next());
 const mockGetRegistros = jest.fn();
 const mockGetImagenes = jest.fn();
 const mockGetEstadoFitosanitario = jest.fn();
+const mockGetInformeMensual = jest.fn();
+const mockGetPendPorTratar = jest.fn();
 
 jest.mock("../../../autenticacion/util", () => ({
   authorize: (...args) => mockAuthorize(...args),
@@ -14,6 +16,8 @@ jest.mock("../../../Enfermedades/registroEnfermedades.repository", () => ({
   get_registro_enfermedades: (...args) => mockGetRegistros(...args),
   get_imagenes_registro_enfermedad: (...args) => mockGetImagenes(...args),
   get_estado_fitosanitario_actual: (...args) => mockGetEstadoFitosanitario(...args),
+  get_informe_mensual: (...args) => mockGetInformeMensual(...args),
+  get_pend_por_tratar: (...args) => mockGetPendPorTratar(...args),
 }));
 
 describe("registroEnfermedades routes", () => {
@@ -88,5 +92,62 @@ describe("registroEnfermedades routes", () => {
     expect(response.status).toBe(200);
     expect(response.body.total_palms_by_lote).toEqual([{ nombre_lote: "Lote A", total_palmas: 3 }]);
     expect(response.body.active_palms[0].estado).toBe("en_tratamiento");
+  });
+
+  it("GET /registro-enfermedades/informe-mensual returns the monthly report", async () => {
+    mockGetInformeMensual.mockResolvedValue({
+      total_casos_mes: 1,
+      total_casos_acumulados: 2,
+      incidencia_real: 10,
+      incidencia_acumulada: 20,
+      evolucion: {
+        pendientes_por_tratar: 1,
+        en_recuperacion: 0,
+        pendientes_por_erradicar: 0,
+        reincidencia: 0,
+        de_alta: 0,
+        eliminada: 0,
+      },
+      registros: [{ id_registro_enfermedad: 1 }],
+    });
+
+    const response = await request(buildApp()).get("/registro-enfermedades/informe-mensual");
+
+    expect(response.status).toBe(200);
+    expect(response.body.total_casos_mes).toBe(1);
+    expect(response.body.registros).toEqual([{ id_registro_enfermedad: 1 }]);
+  });
+
+  it("GET /registro-enfermedades/informe-mensual passes fecha lote and enfermedad filters", async () => {
+    mockGetInformeMensual.mockResolvedValue({
+      total_casos_mes: 0,
+      total_casos_acumulados: 0,
+      incidencia_real: 0,
+      incidencia_acumulada: 0,
+      evolucion: {
+        pendientes_por_tratar: 0,
+        en_recuperacion: 0,
+        pendientes_por_erradicar: 0,
+        reincidencia: 0,
+        de_alta: 0,
+        eliminada: 0,
+      },
+      registros: [],
+    });
+
+    const response = await request(buildApp())
+      .get("/registro-enfermedades/informe-mensual")
+      .query({
+        fecha: "2026-04-15",
+        lote: "Lote A",
+        enfermedad: "Anillo rojo",
+      });
+
+    expect(response.status).toBe(200);
+    expect(mockGetInformeMensual).toHaveBeenCalledWith({
+      fecha: "2026-04-15",
+      lote: "Lote A",
+      enfermedad: "Anillo rojo",
+    });
   });
 });
