@@ -5,6 +5,7 @@ const {
     get_registro_enfermedades,
     get_imagenes_registro_enfermedad,
     get_estado_fitosanitario_actual,
+    get_informe_mensual,
     get_pend_por_tratar,
 } = require("./registroEnfermedades.repository");
 
@@ -52,6 +53,22 @@ rutas.route('/registro-enfermedades/estado-fitosanitario')
         }).catch(
             err => {
                 res.status(500).send({ message: 'Algo inesperado ocurrió.' });
+                console.log(err);
+            }
+        )
+    })
+
+rutas.route('/registro-enfermedades/informe-mensual')
+    .get(authorize(["admin", "user"]), (req, res) => {
+        get_informe_mensual(req.query).then(rta => {
+            if (!rta) {
+                res.status(400).send({ message: 'No se pudo obtener el informe mensual de enfermedades.' });
+            } else {
+                res.status(200).send(rta);
+            }
+        }).catch(
+            err => {
+                res.status(400).send({ message: 'Algo inesperado ocurrió.' });
                 console.log(err);
             }
         )
